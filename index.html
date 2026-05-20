@@ -1,0 +1,2899 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Faz Bazlı Constraint Hesaplayıcı — Tüm Bölgeler</title>
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --surface: #ffffff;
+    --surface-alt: #f1f3f5;
+    --surface-hi: #e8edf2;
+    --text: #1f2937;
+    --text-soft: #6b7280;
+    --text-mute: #9ca3af;
+    --border: #e5e7eb;
+    --border-strong: #d1d5db;
+    --accent: #1f4e79;
+    --accent-soft: #dbeafe;
+    --accent-text: #0c447c;
+    --warn-bg: #fef3c7;
+    --warn-text: #92400e;
+    --danger-bg: #fee2e2;
+    --danger-text: #991b1b;
+    --total-bg: #e2efda;
+    --total-border: #97c459;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: var(--text); background: var(--bg); line-height: 1.5; min-height: 100vh; }
+  header { background: white; border-bottom: 1px solid var(--border); padding: 14px 32px; display: flex; align-items: center; gap: 16px; }
+  header h1 { font-size: 18px; font-weight: 600; margin: 0; color: var(--accent); }
+  header .tag { font-size: 12px; color: var(--text-soft); padding: 3px 10px; background: var(--surface-alt); border-radius: 999px; }
+  .layout { display: grid; grid-template-columns: 280px 1fr; gap: 24px; max-width: 1400px; margin: 24px auto; padding: 0 24px; }
+  .sidebar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0; height: fit-content; position: sticky; top: 16px; box-shadow: var(--shadow); overflow: hidden; }
+  .sidebar-inner { padding: 14px 14px 16px; max-height: calc(100vh - 64px); overflow-y: auto; }
+  .sidebar h3 { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-mute); margin: 14px 4px 6px; padding: 0; }
+  .sidebar h3:first-child { margin-top: 4px; }
+  .search-wrap { position: relative; margin-bottom: 8px; }
+  .search-wrap input { width: 100%; padding: 8px 10px 8px 32px; font-size: 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-alt); }
+  .search-wrap input:focus { outline: none; border-color: var(--accent); background: white; }
+  .search-wrap .search-ico { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-mute); pointer-events: none; }
+  .region-list { display: flex; flex-direction: column; gap: 1px; margin-bottom: 4px; }
+  .region-item { padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; transition: all 0.12s; user-select: none; display: flex; align-items: center; gap: 10px; color: var(--text); position: relative; }
+  .region-item:hover { background: var(--surface-alt); }
+  .region-item.active { background: var(--accent); color: white; font-weight: 500; }
+  .region-item.active .count { background: rgba(255,255,255,0.25); color: white; }
+  .region-item .ic { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; background: var(--surface-alt); border-radius: var(--radius-sm); font-size: 11px; font-weight: 600; color: var(--text-soft); flex-shrink: 0; }
+  .region-item.active .ic { background: rgba(255,255,255,0.18); color: white; }
+  .region-item .name { flex: 1; line-height: 1.2; }
+  .region-item .count { font-size: 11px; padding: 2px 7px; border-radius: 999px; background: var(--surface-alt); color: var(--text-soft); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .region-item.hidden { display: none; }
+  .group-empty { font-size: 11px; color: var(--text-mute); padding: 4px 12px 8px; font-style: italic; }
+  .protocol-select { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .protocol-select label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-mute); display: block; margin-bottom: 6px; }
+  .protocol-select select { width: 100%; padding: 9px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 13px; background: white; }
+  .main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 22px; box-shadow: var(--shadow); }
+  .card h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; color: var(--accent); }
+  .card .sub { font-size: 12px; color: var(--text-soft); margin-bottom: 14px; }
+  select, input, button { font-family: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: white; color: var(--text); }
+  button { cursor: pointer; transition: background 0.15s; }
+  button:hover { background: var(--surface-alt); }
+  button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+  button.primary:hover { background: #163659; }
+  button.ghost { border: 1px solid var(--border); background: transparent; }
+  .phase-grid { display: grid; grid-template-columns: 28px 1.4fr 0.8fr 0.8fr 0.8fr 32px; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .phase-grid .idx { font-size: 12px; color: var(--text-mute); text-align: center; }
+  .phase-grid input { width: 100%; font-size: 13px; padding: 7px 9px; }
+  .phase-grid .dose-readout { font-size: 12px; color: var(--text-soft); text-align: center; padding: 7px 4px; background: var(--surface-alt); border-radius: var(--radius-sm); font-variant-numeric: tabular-nums; }
+  .phase-grid button.del { padding: 5px 7px; font-size: 12px; }
+  .header-row { font-size: 11px; color: var(--text-soft); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 14px; }
+  .metric { background: var(--surface-alt); border-radius: var(--radius-sm); padding: 10px 14px; }
+  .metric .ml { font-size: 11px; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.4px; }
+  .metric .mv { font-size: 22px; font-weight: 600; margin-top: 2px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .section-h { font-size: 11px; font-weight: 600; margin: 16px 0 8px; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.6px; display: flex; align-items: center; gap: 8px; }
+  .section-h::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 9px 11px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+  th { font-weight: 600; background: var(--surface-alt); font-size: 12px; }
+  td.num, th.num { text-align: center; font-variant-numeric: tabular-nums; }
+  td.label { font-weight: 500; }
+  td.total, th.total { background: var(--total-bg); font-weight: 500; }
+  tr:hover td:not(.total) { background: rgba(0,0,0,0.015); }
+  .warn { font-size: 13px; padding: 9px 13px; background: var(--warn-bg); color: var(--warn-text); border-radius: var(--radius-sm); margin-top: 10px; }
+  .danger-note { font-size: 12px; padding: 8px 12px; background: var(--danger-bg); color: var(--danger-text); border-radius: var(--radius-sm); margin-top: 8px; }
+  .mini { font-size: 12px; color: var(--text-mute); margin-top: 10px; }
+  .footer { font-size: 11px; color: var(--text-mute); text-align: center; padding: 20px; }
+  .table-wrap { overflow-x: auto; }
+  .protocol-info { background: var(--surface-alt); padding: 10px 12px; border-radius: var(--radius-sm); font-size: 12px; color: var(--text-soft); margin-bottom: 14px; }
+  .protocol-info strong { color: var(--text); font-weight: 600; }
+  .protocol-sources { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .protocol-sources-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-mute); margin-bottom: 4px; }
+  .source-pill { display: inline-block; font-size: 11px; padding: 3px 9px; margin: 2px 4px 2px 0; background: white; color: var(--accent-text); border: 1px solid var(--border); border-radius: 999px; text-decoration: none; }
+  .source-pill:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .source-pill.plain { color: var(--text-soft); cursor: default; }
+  .source-pill.plain:hover { background: white; border-color: var(--border); }
+  @media print {
+    body { background: white; }
+    header, .sidebar, .btn-row { display: none; }
+    .layout { grid-template-columns: 1fr; max-width: 100%; margin: 0; padding: 12px; gap: 12px; }
+    .card { box-shadow: none; border: 1px solid #999; page-break-inside: avoid; }
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+    .phase-grid { grid-template-columns: 24px 1fr 60px 70px 60px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Faz Bazlı Constraint Hesaplayıcı</h1>
+  <span class="tag">v2 · Tüm bölgeler</span>
+</header>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="search-wrap">
+        <svg class="search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="region-search" placeholder="Bölge ara…" autocomplete="off">
+      </div>
+
+      <div id="region-groups"></div>
+
+      <div class="protocol-select">
+        <label>Aktif protokol</label>
+        <select id="protocol-select"></select>
+      </div>
+
+      <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);">
+        <button id="open-add-modal" class="ghost" style="width: 100%; padding: 9px 10px; font-size: 13px;">+ Manuel bölge/protokol</button>
+        <div class="mini" style="margin-top: 6px; line-height: 1.4;">Eklediklerin tarayıcına kaydedilir.</div>
+      </div>
+
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="card">
+      <h2 id="protocol-title">Prostat</h2>
+      <div class="sub" id="protocol-subtitle">—</div>
+      <div class="protocol-info" id="protocol-info">—</div>
+
+      <div class="section-h">Fazları gir</div>
+      <div class="phase-grid header-row">
+        <span></span><span>Faz adı</span><span>Fraksiyon</span><span>Doz/fx (cGy)</span><span>Faz dozu (Gy)</span><span></span>
+      </div>
+      <div id="phases"></div>
+      <div class="btn-row">
+        <button id="add-phase">+ Faz ekle</button>
+        <button id="reset-phases">Protokol varsayılanına dön</button>
+      </div>
+
+      <div class="totals">
+        <div class="metric"><div class="ml">Toplam fraksiyon</div><div class="mv" id="t-fx">—</div></div>
+        <div class="metric"><div class="ml">Toplam doz (Gy)</div><div class="mv" id="t-dose">—</div></div>
+        <div class="metric"><div class="ml">Ort. doz/fx (cGy)</div><div class="mv" id="t-avg">—</div></div>
+        <div class="metric"><div class="ml">Faz sayısı</div><div class="mv" id="t-phases">—</div></div>
+      </div>
+
+      <div id="warn-row"></div>
+    </div>
+
+    <div class="card">
+      <h2>Plan özeti</h2>
+      <div class="table-wrap">
+        <table id="summary-tbl">
+          <thead><tr><th>Faz</th><th class="num">Fraksiyon</th><th class="num">Doz/fx</th><th class="num">Faz reçetesi (Gy)</th><th class="num">Skala faktörü</th><th class="num">Pay (%)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>PTV hedefleri (her faz kendi reçetesi)</h2>
+      <div class="table-wrap">
+        <table id="ptv-tbl">
+          <thead><tr><th>Hedef</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" id="special-rules-card" style="display:none;">
+      <h2>Özel kurallar</h2>
+      <div class="sub">Bu protokol için PTV-yapı yakınlık kuralları (faz bazlı orantılanmış).</div>
+      <div class="table-wrap">
+        <table id="special-tbl">
+          <thead><tr><th>Kural</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>OAR kısıtları</h2>
+      <div class="sub">Her faz kendi reçete dozu üzerinden orantılı sınırlar + kümülatif toplam (yeşil sütun).</div>
+      <div class="table-wrap">
+        <table id="oar-tbl">
+          <thead><tr><th>OAR / Protokol</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="mini">Skala faktörü = (fazın reçete dozu) / (toplam reçete dozu). Her faz kendi planında bu sınırları sağlarsa, üç fazın orantılı katkısı kümülatif toplamda protokol değerlerini karşılar.</div>
+    </div>
+
+    <div class="card">
+      <h2>Dışa aktar</h2>
+      <div class="btn-row">
+        <button id="copy-md" class="primary">Markdown kopyala</button>
+        <button id="copy-csv">CSV kopyala (OAR)</button>
+        <button id="print-page">Yazdır / PDF</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="footer">v2 — Klinik fizik için hazırlandı · Klinik kararlar için protokol referansı + hekim onayı zorunlu · Protokol değerleri kliniğinizin standartlarıyla doğrulanmalıdır.</div>
+
+<div id="add-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:1000; align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
+  <div style="background:white; border-radius:var(--radius); padding:24px; max-width:680px; width:100%; max-height:90vh; overflow-y:auto;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+      <h2 style="font-size:18px; margin:0; color:var(--accent);">Manuel bölge/protokol ekle</h2>
+      <button id="close-modal" style="padding:4px 10px;">×</button>
+    </div>
+    <div class="sub" style="margin-bottom:14px;">Yeni bir bölge oluştur veya mevcut bölgeye protokol ekle. Veriler tarayıcına kaydedilir (localStorage).</div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+      <div>
+        <label style="font-size:12px; color:var(--text-soft); display:block; margin-bottom:4px;">Bölge (mevcut veya yeni)</label>
+        <input type="text" id="m-region" placeholder="örn. Mesane veya Pediatrik" style="width:100%;">
+      </div>
+      <div>
+        <label style="font-size:12px; color:var(--text-soft); display:block; margin-bottom:4px;">Bölge ikonu (1 karakter)</label>
+        <input type="text" id="m-icon" placeholder="M" maxlength="2" style="width:100%;">
+      </div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px; color:var(--text-soft); display:block; margin-bottom:4px;">Protokol adı</label>
+      <input type="text" id="m-proto-name" placeholder="örn. Definitif kemoRT 64.8 Gy / 36 fx" style="width:100%;">
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 2fr; gap:12px; margin-bottom:12px;">
+      <div>
+        <label style="font-size:12px; color:var(--text-soft); display:block; margin-bottom:4px;">Toplam ref doz (Gy)</label>
+        <input type="number" id="m-ref" step="0.1" placeholder="64.8" style="width:100%;">
+      </div>
+      <div>
+        <label style="font-size:12px; color:var(--text-soft); display:block; margin-bottom:4px;">Açıklama (kısa not)</label>
+        <input type="text" id="m-note" placeholder="örn. konkürran sisplatin" style="width:100%;">
+      </div>
+    </div>
+
+    <div style="font-size:12px; font-weight:600; color:var(--text-soft); text-transform:uppercase; letter-spacing:0.4px; margin:14px 0 6px;">Varsayılan fazlar</div>
+    <div id="m-phases-list"></div>
+    <button id="m-add-phase" style="font-size:12px; padding:5px 10px;">+ Faz ekle</button>
+
+    <div style="font-size:12px; font-weight:600; color:var(--text-soft); text-transform:uppercase; letter-spacing:0.4px; margin:14px 0 6px;">PTV hedefleri</div>
+    <div class="mini" style="margin-bottom:6px;">Format: "Etiket | Yüzde değeri" — örn. "D95% ≥ Rx %95 | 95"</div>
+    <textarea id="m-ptv" rows="3" placeholder="D95% ≥ Rx %95 | 95&#10;Dmax ≤ Rx %107 | 107" style="width:100%; font-family:monospace; font-size:12px; padding:8px; border:1px solid var(--border-strong); border-radius:var(--radius-sm);"></textarea>
+
+    <div style="font-size:12px; font-weight:600; color:var(--text-soft); text-transform:uppercase; letter-spacing:0.4px; margin:14px 0 6px;">OAR kısıtları</div>
+    <div class="mini" style="margin-bottom:6px;">Format: "Etiket | tip | doz | hacim" — tip: V, DV, Dmean, Dmax. V için "Rektum V65 ≤ %17 | V | 65 | 17". DV için "İnce barsak 1cc < 55 Gy | DV | 55 | 1cc". Dmean: "Heart Dmean ≤ 4 Gy | Dmean | 4". Dmax: "Femur Dmax ≤ 50 Gy | Dmax | 50".</div>
+    <textarea id="m-oar" rows="6" placeholder="Rektum V50 ≤ %50 | V | 50 | 50&#10;Mesane V40 ≤ %40 | V | 40 | 40&#10;Femur Dmax ≤ 50 Gy | Dmax | 50" style="width:100%; font-family:monospace; font-size:12px; padding:8px; border:1px solid var(--border-strong); border-radius:var(--radius-sm);"></textarea>
+
+    <div class="btn-row" style="margin-top:18px; justify-content:flex-end;">
+      <button id="m-cancel">İptal</button>
+      <button id="m-save" class="primary">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const REGIONS = {
+  prostat: {
+    name: "Prostat",
+    icon: "PR",
+    protocols: {
+      definitif78: {
+        name: "Definitif RT 78 Gy / 39 fx (3 faz)",
+        refTotal: 78,
+        note: "Mutlak doz eşikli protokol (V65, V40). Faz başına orantılı, kümülatif toplam bağlayıcı.",
+        sources: [
+          { label: "RTOG 0126 (78 vs 79.2 Gy dose escalation)", url: "https://pubmed.ncbi.nlm.nih.gov/22424194/" },
+          { label: "QUANTEC rektum (Michalski 2010)", url: "https://pubmed.ncbi.nlm.nih.gov/20171515/" },
+          { label: "QUANTEC mesane (Viswanathan 2010)", url: "https://pubmed.ncbi.nlm.nih.gov/20171513/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %100", pct: 100 },
+          { label: "D95% kabul (Rx %98)", pct: 98 },
+          { label: "D100% ≥ Rx %98", pct: 98 },
+          { label: "D100% kabul (Rx %95)", pct: 95 },
+          { label: "D5% ≤ Rx %105", pct: 105 },
+          { label: "Dmax ≤ Rx %107", pct: 107 },
+          { label: "Dmax kabul (Rx %110)", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Rektum V65 ≤ %17", kind: "V", dose: 65, vol: 17 },
+          { lbl: "Rektum V40 ≤ %35", kind: "V", dose: 40, vol: 35 },
+          { lbl: "Mesane V65 ≤ %25", kind: "V", dose: 65, vol: 25 },
+          { lbl: "Mesane V40 ≤ %50", kind: "V", dose: 40, vol: 50 },
+          { lbl: "İnce Barsak 1cc < 55 Gy", kind: "DV", vol: "1cc", dose: 55 },
+          { lbl: "Anal Kanal Dort < 40 Gy", kind: "Dmean", dose: 40 },
+          { lbl: "Femur_R Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Femur_L Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        specialRules: [
+          { lbl: "Rx %90 → rektum posterior 1/2 sınırı", pct: 90, desc: "PTV alanında bu doz rektumun posterior yarısını geçmemeli" },
+          { lbl: "Rx %50 → tam sarılma yasak sınırı", pct: 50, desc: "Bu doz hiçbir rektum kesitini tam sarmamalı" }
+        ],
+        defaultPhases: [
+          { name: "Faz 1 (pelvik+SV+prostat)", fx: 25, dpf: 180 },
+          { name: "Faz 2 (SV+prostat)", fx: 10, dpf: 200 },
+          { name: "Faz 3 (prostat boost)", fx: 6, dpf: 200 }
+        ]
+      },
+      definitif78_2faz: {
+        name: "Definitif 78 Gy / 39 fx (2 faz)",
+        refTotal: 78,
+        note: "Pelvik nodal yok; sadece SV+prostat sonra boost.",
+        sources: [
+          { label: "RTOG 0126", url: "https://pubmed.ncbi.nlm.nih.gov/22424194/" },
+          { label: "Klinik pratik (Türk Radyasyon Onkolojisi Derneği rehberi)" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %100", pct: 100 },
+          { label: "D100% ≥ Rx %98", pct: 98 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Rektum V65 ≤ %17", kind: "V", dose: 65, vol: 17 },
+          { lbl: "Rektum V40 ≤ %35", kind: "V", dose: 40, vol: 35 },
+          { lbl: "Mesane V65 ≤ %25", kind: "V", dose: 65, vol: 25 },
+          { lbl: "Mesane V40 ≤ %50", kind: "V", dose: 40, vol: 50 },
+          { lbl: "İnce Barsak 1cc < 55 Gy", kind: "DV", vol: "1cc", dose: 55 },
+          { lbl: "Anal Kanal Dort < 40 Gy", kind: "Dmean", dose: 40 },
+          { lbl: "Femur Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        specialRules: [
+          { lbl: "Rx %90 → rektum posterior 1/2 sınırı", pct: 90 },
+          { lbl: "Rx %50 → tam sarılma yasak sınırı", pct: 50 }
+        ],
+        defaultPhases: [
+          { name: "Faz 1 (SV+prostat)", fx: 33, dpf: 200 },
+          { name: "Faz 2 (prostat boost)", fx: 6, dpf: 200 }
+        ]
+      },
+      definitif80: {
+        name: "Definitif 80 Gy / 40 fx",
+        refTotal: 80,
+        note: "Yüksek risk lokalize; dose escalation.",
+        sources: [
+          { label: "MRC RT01 (escalated dose)", url: "https://pubmed.ncbi.nlm.nih.gov/24607426/" },
+          { label: "GETUG 06 trial", url: "https://pubmed.ncbi.nlm.nih.gov/21167650/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %100", pct: 100 },
+          { label: "D100% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Rektum V70 ≤ %15", kind: "V", dose: 70, vol: 15 },
+          { lbl: "Rektum V65 ≤ %20", kind: "V", dose: 65, vol: 20 },
+          { lbl: "Rektum V50 ≤ %50", kind: "V", dose: 50, vol: 50 },
+          { lbl: "Rektum V40 ≤ %40", kind: "V", dose: 40, vol: 40 },
+          { lbl: "Mesane V70 ≤ %25", kind: "V", dose: 70, vol: 25 },
+          { lbl: "Mesane V65 ≤ %50", kind: "V", dose: 65, vol: 50 },
+          { lbl: "İnce Barsak 1cc < 55 Gy", kind: "DV", vol: "1cc", dose: 55 },
+          { lbl: "Femur Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        specialRules: [
+          { lbl: "Rx %90 → rektum posterior 1/2 sınırı", pct: 90 },
+          { lbl: "Rx %50 → tam sarılma yasak sınırı", pct: 50 }
+        ],
+        defaultPhases: [
+          { name: "Faz 1 (pelvik+SV+prostat)", fx: 25, dpf: 180 },
+          { name: "Faz 2 (prostat boost)", fx: 15, dpf: 250 }
+        ]
+      },
+      definitif74: {
+        name: "Definitif 74 Gy / 37 fx",
+        refTotal: 74,
+        note: "Standart doz; PROFIT konvansiyonel kol.",
+        sources: [
+          { label: "PROFIT trial (Catton 2017)", url: "https://pubmed.ncbi.nlm.nih.gov/28280210/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %100", pct: 100 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Rektum V70 ≤ %15", kind: "V", dose: 70, vol: 15 },
+          { lbl: "Rektum V65 ≤ %25", kind: "V", dose: 65, vol: 25 },
+          { lbl: "Rektum V40 ≤ %35", kind: "V", dose: 40, vol: 35 },
+          { lbl: "Mesane V65 ≤ %25", kind: "V", dose: 65, vol: 25 },
+          { lbl: "Mesane V40 ≤ %50", kind: "V", dose: 40, vol: 50 },
+          { lbl: "Femur Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        specialRules: [
+          { lbl: "Rx %90 → rektum posterior 1/2 sınırı", pct: 90 },
+          { lbl: "Rx %50 → tam sarılma yasak sınırı", pct: 50 }
+        ],
+        defaultPhases: [{ name: "Faz 1", fx: 37, dpf: 200 }]
+      },
+      hipo60: {
+        name: "Hipofraksiyone 60 Gy / 20 fx (CHHiP)",
+        refTotal: 60,
+        note: "Moderate hypofractionation; CHHiP / PROFIT bazlı.",
+        sources: [
+          { label: "CHHiP trial (Dearnaley 2016)", url: "https://pubmed.ncbi.nlm.nih.gov/27339115/" },
+          { label: "ASTRO/ASCO/AUA hipofraksiyone rehberi 2018", url: "https://pubmed.ncbi.nlm.nih.gov/30307862/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Rektum V50 ≤ %15", kind: "V", dose: 50, vol: 15 },
+          { lbl: "Rektum V40 ≤ %30", kind: "V", dose: 40, vol: 30 },
+          { lbl: "Rektum V30 ≤ %50", kind: "V", dose: 30, vol: 50 },
+          { lbl: "Mesane V50 ≤ %25", kind: "V", dose: 50, vol: 25 },
+          { lbl: "Mesane V40 ≤ %40", kind: "V", dose: 40, vol: 40 },
+          { lbl: "Femur Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 }
+        ],
+        specialRules: [
+          { lbl: "Rx %90 → rektum posterior 1/2 sınırı", pct: 90 },
+          { lbl: "Rx %50 → tam sarılma yasak sınırı", pct: 50 }
+        ],
+        defaultPhases: [{ name: "Faz 1", fx: 20, dpf: 300 }]
+      },
+      hipo70: {
+        name: "Hipofraksiyone 70 Gy / 28 fx",
+        refTotal: 70,
+        note: "Moderate hypofractionation; RTOG 0415 bazlı.",
+        sources: [
+          { label: "RTOG 0415 (Lee 2016)", url: "https://pubmed.ncbi.nlm.nih.gov/27044935/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Rektum V70 ≤ %10", kind: "V", dose: 70, vol: 10 },
+          { lbl: "Rektum V65 ≤ %20", kind: "V", dose: 65, vol: 20 },
+          { lbl: "Rektum V60 ≤ %30", kind: "V", dose: 60, vol: 30 },
+          { lbl: "Rektum V40 ≤ %35", kind: "V", dose: 40, vol: 35 },
+          { lbl: "Mesane V65 ≤ %25", kind: "V", dose: 65, vol: 25 },
+          { lbl: "Femur Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 }
+        ],
+        specialRules: [
+          { lbl: "Rx %90 → rektum posterior 1/2 sınırı", pct: 90 },
+          { lbl: "Rx %50 → tam sarılma yasak sınırı", pct: 50 }
+        ],
+        defaultPhases: [{ name: "Faz 1", fx: 28, dpf: 250 }]
+      },
+      sbrt3625: {
+        name: "SBRT 36.25 Gy / 5 fx",
+        refTotal: 36.25,
+        note: "Ultra-hipofraksiyone SBRT; AAPM TG-101 / RTOG 0938.",
+        sources: [
+          { label: "PACE-B (van As 2024)", url: "https://pubmed.ncbi.nlm.nih.gov/35850032/" },
+          { label: "AAPM TG-101", url: "https://pubmed.ncbi.nlm.nih.gov/20662446/" },
+          { label: "RTOG 0938", url: "https://pubmed.ncbi.nlm.nih.gov/30446357/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Rektum V36 ≤ 1 cc", kind: "DV", vol: "1cc", dose: 36 },
+          { lbl: "Rektum V32.6 ≤ %5", kind: "V", dose: 32.6, vol: 5 },
+          { lbl: "Rektum V29 ≤ %15", kind: "V", dose: 29, vol: 15 },
+          { lbl: "Mesane V32.6 ≤ %10", kind: "V", dose: 32.6, vol: 10 },
+          { lbl: "Mesane V18.1 ≤ %40", kind: "V", dose: 18.1, vol: 40 },
+          { lbl: "Üretra Dmax ≤ 38.06 Gy", kind: "Dmax", dose: 38.06 }
+        ],
+        specialRules: [
+          { lbl: "Rx %90 → rektum posterior 1/2 sınırı", pct: 90 },
+          { lbl: "Rx %50 → tam sarılma yasak sınırı", pct: 50 }
+        ],
+        defaultPhases: [{ name: "SBRT", fx: 5, dpf: 725 }]
+      },
+      sbrt40: {
+        name: "SBRT 40 Gy / 5 fx (yüksek doz)",
+        refTotal: 40,
+        note: "Yüksek doz SBRT; PACE-B / HYPO-RT-PC alternatifi.",
+        sources: [
+          { label: "HYPO-RT-PC (Widmark 2019)", url: "https://pubmed.ncbi.nlm.nih.gov/31227373/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Rektum V36 ≤ %1", kind: "V", dose: 36, vol: 1 },
+          { lbl: "Rektum V32 ≤ %5", kind: "V", dose: 32, vol: 5 },
+          { lbl: "Mesane V37 ≤ %10", kind: "V", dose: 37, vol: 10 },
+          { lbl: "Üretra Dmax ≤ 42 Gy", kind: "Dmax", dose: 42 }
+        ],
+        specialRules: [
+          { lbl: "Rx %90 → rektum posterior 1/2 sınırı", pct: 90 },
+          { lbl: "Rx %50 → tam sarılma yasak sınırı", pct: 50 }
+        ],
+        defaultPhases: [{ name: "SBRT yüksek doz", fx: 5, dpf: 800 }]
+      },
+      postop66: {
+        name: "Postop adjuvan 66 Gy / 33 fx",
+        refTotal: 66,
+        note: "Postprostatektomi salvage/adjuvan; RTOG 0534.",
+        sources: [
+          { label: "RTOG 0534 / SPPORT (Pollack 2022)", url: "https://pubmed.ncbi.nlm.nih.gov/35369581/" },
+          { label: "RADICALS-RT", url: "https://pubmed.ncbi.nlm.nih.gov/32702383/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Rektum V65 ≤ %17", kind: "V", dose: 65, vol: 17 },
+          { lbl: "Rektum V40 ≤ %35", kind: "V", dose: 40, vol: 35 },
+          { lbl: "Mesane V65 ≤ %25", kind: "V", dose: 65, vol: 25 },
+          { lbl: "Mesane V40 ≤ %50", kind: "V", dose: 40, vol: 50 },
+          { lbl: "Femur Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        defaultPhases: [{ name: "Postop", fx: 33, dpf: 200 }]
+      },
+      postop70: {
+        name: "Postop yüksek risk 70 Gy / 35 fx",
+        refTotal: 70,
+        note: "Pozitif sınır / yüksek PSA persistansı.",
+        sources: [
+          { label: "GETUG-AFU 22", url: "https://pubmed.ncbi.nlm.nih.gov/35381194/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Rektum V65 ≤ %20", kind: "V", dose: 65, vol: 20 },
+          { lbl: "Rektum V40 ≤ %40", kind: "V", dose: 40, vol: 40 },
+          { lbl: "Mesane V65 ≤ %25", kind: "V", dose: 65, vol: 25 },
+          { lbl: "Femur Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        defaultPhases: [{ name: "Postop HR", fx: 35, dpf: 200 }]
+      },
+      pelvikSal: {
+        name: "Pelvik LN + salvage 45+22 Gy / 36 fx",
+        refTotal: 67,
+        note: "Pelvik lenf nodu profilaktik + salvage prostat lojuna boost (SPPORT/NRG GU-006 esinli).",
+        sources: [
+          { label: "SPPORT / NRG GU-006", url: "https://pubmed.ncbi.nlm.nih.gov/35369581/" }
+        ],
+        ptv: [
+          { label: "PTV_Pelvik D95% ≥ %95", pct: 95 },
+          { label: "PTV_Boost D95% ≥ %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Rektum V65 ≤ %17", kind: "V", dose: 65, vol: 17 },
+          { lbl: "Rektum V40 ≤ %35", kind: "V", dose: 40, vol: 35 },
+          { lbl: "Mesane V65 ≤ %25", kind: "V", dose: 65, vol: 25 },
+          { lbl: "İnce barsak V40 ≤ %30", kind: "V", dose: 40, vol: 30 },
+          { lbl: "Femur Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        defaultPhases: [
+          { name: "Faz 1 (Pelvik LN)", fx: 25, dpf: 180 },
+          { name: "Faz 2 (Boost loj)", fx: 11, dpf: 200 }
+        ]
+      }
+    }
+  },
+
+  meme: {
+    name: "Meme",
+    icon: "ME",
+    protocols: {
+      konv50: {
+        name: "Whole breast 50 Gy / 25 fx",
+        refTotal: 50,
+        note: "Konvansiyonel whole-breast; lumpektomi sonrası.",
+        sources: [
+          { label: "NSABP B-04 / EBCTCG", url: "https://pubmed.ncbi.nlm.nih.gov/22019144/" },
+          { label: "ASTRO whole breast rehberi", url: "https://pubmed.ncbi.nlm.nih.gov/29545048/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "V95% ≥ %95", pct: 95 },
+          { label: "D2% ≤ Rx %107", pct: 107 },
+          { label: "V107% ≤ %2", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Heart Dmean ≤ 4 Gy", kind: "Dmean", dose: 4 },
+          { lbl: "Heart V25 ≤ %10", kind: "V", dose: 25, vol: 10 },
+          { lbl: "LAD Dmean ≤ 10 Gy (sol)", kind: "Dmean", dose: 10 },
+          { lbl: "Lung ipsi V20 ≤ %20", kind: "V", dose: 20, vol: 20 },
+          { lbl: "Lung ipsi V5 ≤ %50", kind: "V", dose: 5, vol: 50 },
+          { lbl: "Lung ipsi Dmean ≤ 10 Gy", kind: "Dmean", dose: 10 },
+          { lbl: "Contralateral breast Dmean ≤ 3 Gy", kind: "Dmean", dose: 3 },
+          { lbl: "Humerus Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Brachial plexus Dmax ≤ 60 Gy", kind: "Dmax", dose: 60 }
+        ],
+        defaultPhases: [{ name: "Faz 1 (Whole breast)", fx: 25, dpf: 200 }]
+      },
+      konv5010: {
+        name: "Whole breast 50 Gy + 10 Gy boost / 30 fx",
+        refTotal: 60,
+        note: "Whole breast + tümör yatağı boost; sequential boost.",
+        sources: [
+          { label: "Bartelink boost study (EORTC 22881)", url: "https://pubmed.ncbi.nlm.nih.gov/25439688/" }
+        ],
+        ptv: [
+          { label: "PTV_WB D95% ≥ Rx %95", pct: 95 },
+          { label: "PTV_Boost D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Heart Dmean ≤ 4 Gy", kind: "Dmean", dose: 4 },
+          { lbl: "Heart V25 ≤ %10", kind: "V", dose: 25, vol: 10 },
+          { lbl: "LAD Dmean ≤ 10 Gy", kind: "Dmean", dose: 10 },
+          { lbl: "Lung ipsi V20 ≤ %20", kind: "V", dose: 20, vol: 20 },
+          { lbl: "Lung ipsi Dmean ≤ 10 Gy", kind: "Dmean", dose: 10 },
+          { lbl: "Contralateral breast Dmean ≤ 3 Gy", kind: "Dmean", dose: 3 }
+        ],
+        defaultPhases: [
+          { name: "Faz 1 (Whole breast)", fx: 25, dpf: 200 },
+          { name: "Faz 2 (Boost)", fx: 5, dpf: 200 }
+        ]
+      },
+      hipo40: {
+        name: "Hipofraksiyone 40 Gy / 15 fx (START-B)",
+        refTotal: 40,
+        note: "START-B / RCR moderate hipofraksiyonasyon.",
+        sources: [
+          { label: "START-B (Haviland 2013)", url: "https://pubmed.ncbi.nlm.nih.gov/24055415/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Heart Dmean ≤ 3 Gy", kind: "Dmean", dose: 3 },
+          { lbl: "Heart V20 ≤ %5", kind: "V", dose: 20, vol: 5 },
+          { lbl: "LAD Dmean ≤ 8 Gy", kind: "Dmean", dose: 8 },
+          { lbl: "Lung ipsi V18 ≤ %15", kind: "V", dose: 18, vol: 15 },
+          { lbl: "Lung ipsi V8 ≤ %35", kind: "V", dose: 8, vol: 35 },
+          { lbl: "Contralateral breast Dmean ≤ 3 Gy", kind: "Dmean", dose: 3 }
+        ],
+        defaultPhases: [{ name: "Faz 1 (Whole breast)", fx: 15, dpf: 267 }]
+      },
+      fastfwd: {
+        name: "FAST-Forward 26 Gy / 5 fx",
+        refTotal: 26,
+        note: "Ultra-hipofraksiyone; FAST-Forward trial.",
+        sources: [
+          { label: "FAST-Forward (Murray Brunt 2020)", url: "https://pubmed.ncbi.nlm.nih.gov/32580883/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Heart V1.5 ≤ %30", kind: "V", dose: 1.5, vol: 30 },
+          { lbl: "Heart V7 ≤ %5", kind: "V", dose: 7, vol: 5 },
+          { lbl: "Lung ipsi V8 ≤ %15", kind: "V", dose: 8, vol: 15 }
+        ],
+        defaultPhases: [{ name: "FAST-Fwd", fx: 5, dpf: 520 }]
+      },
+      bilateral504: {
+        name: "Bilateral 50.4 Gy / 28 fx + nodal",
+        refTotal: 50.4,
+        note: "Bilateral meme + bölgesel nodal; literatür sınırlı (Chen 2021 Halcyon).",
+        sources: [
+          { label: "Chen et al 2021 (Halcyon bilateral)", url: "https://pubmed.ncbi.nlm.nih.gov/33602267/" }
+        ],
+        ptv: [
+          { label: "PTV_R D95% ≥ Rx %95", pct: 95 },
+          { label: "PTV_L D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Heart Dmean ≤ 4 Gy", kind: "Dmean", dose: 4 },
+          { lbl: "Heart V25 ≤ %10", kind: "V", dose: 25, vol: 10 },
+          { lbl: "LAD Dmean ≤ 10 Gy", kind: "Dmean", dose: 10 },
+          { lbl: "Lung_Total V20 ≤ %30", kind: "V", dose: 20, vol: 30 },
+          { lbl: "Lung_Total Dmean ≤ 15 Gy", kind: "Dmean", dose: 15 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Brachial plexus Dmax ≤ 60 Gy", kind: "Dmax", dose: 60 },
+          { lbl: "Esophagus Dmean ≤ 15 Gy", kind: "Dmean", dose: 15 },
+          { lbl: "Thyroid Dmean ≤ 25 Gy", kind: "Dmean", dose: 25 }
+        ],
+        defaultPhases: [{ name: "Faz 1 (Bilateral WB+nodal)", fx: 28, dpf: 180 }]
+      },
+      hipo425: {
+        name: "Hipofraksiyone 42.5 Gy / 16 fx",
+        refTotal: 42.5,
+        note: "Whelan/CHHiP varyasyonu; Kanada/ABD popüler.",
+        sources: [
+          { label: "Whelan 2010 hipofraksiyone", url: "https://pubmed.ncbi.nlm.nih.gov/20147717/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Heart Dmean ≤ 3 Gy", kind: "Dmean", dose: 3 },
+          { lbl: "Heart V20 ≤ %5", kind: "V", dose: 20, vol: 5 },
+          { lbl: "LAD Dmean ≤ 8 Gy", kind: "Dmean", dose: 8 },
+          { lbl: "Lung ipsi V16 ≤ %15", kind: "V", dose: 16, vol: 15 },
+          { lbl: "Lung ipsi Dmean ≤ 8 Gy", kind: "Dmean", dose: 8 },
+          { lbl: "Contralateral breast Dmean ≤ 2 Gy", kind: "Dmean", dose: 2 }
+        ],
+        defaultPhases: [{ name: "Faz 1 (Whole breast)", fx: 16, dpf: 266 }]
+      },
+      pmrt50: {
+        name: "PMRT 50 Gy / 25 fx + nodal",
+        refTotal: 50,
+        note: "Postmastektomi göğüs duvarı + supraklaviküler ± aksilla ± IMN.",
+        sources: [
+          { label: "ASTRO PMRT konsensüsü 2016", url: "https://pubmed.ncbi.nlm.nih.gov/27659727/" },
+          { label: "EBCTCG meta-analiz", url: "https://pubmed.ncbi.nlm.nih.gov/24656685/" }
+        ],
+        ptv: [
+          { label: "PTV_CW D95% ≥ Rx %95", pct: 95 },
+          { label: "PTV_SCV D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Heart Dmean ≤ 4 Gy", kind: "Dmean", dose: 4 },
+          { lbl: "Heart V25 ≤ %10", kind: "V", dose: 25, vol: 10 },
+          { lbl: "LAD Dmean ≤ 10 Gy", kind: "Dmean", dose: 10 },
+          { lbl: "Lung ipsi V20 ≤ %30", kind: "V", dose: 20, vol: 30 },
+          { lbl: "Lung ipsi V5 ≤ %60", kind: "V", dose: 5, vol: 60 },
+          { lbl: "Lung ipsi Dmean ≤ 15 Gy", kind: "Dmean", dose: 15 },
+          { lbl: "Brachial plexus Dmax ≤ 60 Gy", kind: "Dmax", dose: 60 },
+          { lbl: "Esophagus Dmean ≤ 15 Gy", kind: "Dmean", dose: 15 },
+          { lbl: "Thyroid Dmean ≤ 25 Gy", kind: "Dmean", dose: 25 },
+          { lbl: "Humerus Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        defaultPhases: [{ name: "PMRT", fx: 25, dpf: 200 }]
+      },
+      pmrtSIB: {
+        name: "PMRT SIB 50/57.5 Gy / 25 fx",
+        refTotal: 57.5,
+        note: "PMRT + skar SIB (yüksek riskli).",
+        sources: [
+          { label: "SIB PMRT klinik pratik" }
+        ],
+        ptv: [
+          { label: "PTV_CW (50) D95% ≥ %95", pct: 87 },
+          { label: "PTV_Skar (57.5) D95% ≥ %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Heart Dmean ≤ 4 Gy", kind: "Dmean", dose: 4 },
+          { lbl: "Lung ipsi V20 ≤ %30", kind: "V", dose: 20, vol: 30 },
+          { lbl: "Brachial plexus Dmax ≤ 60 Gy", kind: "Dmax", dose: 60 }
+        ],
+        defaultPhases: [{ name: "SIB PMRT", fx: 25, dpf: 230 }]
+      },
+      pbi385: {
+        name: "Partial breast 38.5 Gy / 10 fx bid (NSABP B-39)",
+        refTotal: 38.5,
+        note: "Akselere parsiyel meme; günde 2 fraksiyon (≥6 saat ara).",
+        sources: [
+          { label: "NSABP B-39 / RTOG 0413", url: "https://pubmed.ncbi.nlm.nih.gov/31813835/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "İpsi meme - PTV V50% ≤ %50", kind: "V", dose: 19.25, vol: 50 },
+          { lbl: "Lung ipsi V30% ≤ %15", kind: "V", dose: 11.55, vol: 15 },
+          { lbl: "Heart V5 ≤ %40", kind: "V", dose: 5, vol: 40 },
+          { lbl: "Contralateral breast Dmax < 3% Rx", kind: "Dmax", dose: 1.155 }
+        ],
+        defaultPhases: [{ name: "PBI", fx: 10, dpf: 385 }]
+      },
+      apbi30: {
+        name: "APBI 30 Gy / 5 fx (IMPORT-LOW kısa)",
+        refTotal: 30,
+        note: "Düşük doz APBI; haftada 1-2 fraksiyon protokolleri.",
+        sources: [
+          { label: "IMPORT-LOW", url: "https://pubmed.ncbi.nlm.nih.gov/28499667/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Lung ipsi V10 ≤ %20", kind: "V", dose: 10, vol: 20 },
+          { lbl: "Heart V5 ≤ %5", kind: "V", dose: 5, vol: 5 }
+        ],
+        defaultPhases: [{ name: "APBI", fx: 5, dpf: 600 }]
+      },
+      reirrad: {
+        name: "Re-irradiation 45 Gy / 30 fx bid",
+        refTotal: 45,
+        note: "Lokal nüks; iyon bombardımanı + RTOG 1014 esinli.",
+        sources: [
+          { label: "RTOG 1014 (Arthur 2020)", url: "https://pubmed.ncbi.nlm.nih.gov/31999310/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Heart Dmean ≤ 3 Gy", kind: "Dmean", dose: 3 },
+          { lbl: "Lung ipsi V20 ≤ %15", kind: "V", dose: 20, vol: 15 },
+          { lbl: "Cilt Dmax ≤ Rx", kind: "Dmax", dose: 45 }
+        ],
+        defaultPhases: [{ name: "Re-RT", fx: 30, dpf: 150 }]
+      }
+    }
+  },
+
+  bb: {
+    name: "Baş-boyun",
+    icon: "BB",
+    protocols: {
+      sib70: {
+        name: "SIB 70/63/56 Gy / 35 fx",
+        refTotal: 70,
+        note: "Simultane integrated boost; konkürran kemoRT (RTOG 0522 esinli).",
+        sources: [
+          { label: "RTOG 0522", url: "https://pubmed.ncbi.nlm.nih.gov/24247551/" },
+          { label: "ICRU 83", url: "https://www.icru.org/report/icru-report-83/" }
+        ],
+        ptv: [
+          { label: "PTV70 D95% ≥ Rx %95", pct: 95 },
+          { label: "PTV63 D95% ≥ %95 (63 Gy = %90)", pct: 90 },
+          { label: "PTV56 D95% ≥ %95 (56 Gy = %80)", pct: 80 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Parotid (en az 1) Dmean ≤ 26 Gy", kind: "Dmean", dose: 26 },
+          { lbl: "Submandibular Dmean ≤ 39 Gy", kind: "Dmean", dose: 39 },
+          { lbl: "Larynx Dmean ≤ 45 Gy", kind: "Dmean", dose: 45 },
+          { lbl: "Oral kavite Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 },
+          { lbl: "Esophagus Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Spinal cord PRV Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Brainstem Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Cochlea Dmean ≤ 35 Gy", kind: "Dmean", dose: 35 },
+          { lbl: "Mandibula Dmax ≤ 70 Gy", kind: "Dmax", dose: 70 },
+          { lbl: "Brachial plexus Dmax ≤ 66 Gy", kind: "Dmax", dose: 66 },
+          { lbl: "Optic chiasm Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Optic nerve Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Lens Dmax ≤ 6 Gy", kind: "Dmax", dose: 6 }
+        ],
+        defaultPhases: [{ name: "SIB Faz 1", fx: 35, dpf: 200 }]
+      },
+      seq70: {
+        name: "Sequential 50+10+10 Gy / 35 fx",
+        refTotal: 70,
+        note: "Klasik üç fazlı sequential boost.",
+        sources: [
+          { label: "RTOG 9501 / EORTC 22931", url: "https://pubmed.ncbi.nlm.nih.gov/15128894/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Parotid Dmean ≤ 26 Gy", kind: "Dmean", dose: 26 },
+          { lbl: "Submandibular Dmean ≤ 39 Gy", kind: "Dmean", dose: 39 },
+          { lbl: "Larynx Dmean ≤ 45 Gy", kind: "Dmean", dose: 45 },
+          { lbl: "Oral kavite Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Brainstem Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Cochlea Dmean ≤ 35 Gy", kind: "Dmean", dose: 35 },
+          { lbl: "Esophagus Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 }
+        ],
+        defaultPhases: [
+          { name: "Faz 1 (50 Gy elektif)", fx: 25, dpf: 200 },
+          { name: "Faz 2 (yüksek risk boost)", fx: 5, dpf: 200 },
+          { name: "Faz 3 (gross tümör boost)", fx: 5, dpf: 200 }
+        ]
+      },
+      postop60: {
+        name: "Postop adjuvan 60 Gy / 30 fx",
+        refTotal: 60,
+        note: "R0 rezeksiyon sonrası negatif sınır.",
+        sources: [
+          { label: "RTOG 9501", url: "https://pubmed.ncbi.nlm.nih.gov/15128894/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Parotid Dmean ≤ 26 Gy", kind: "Dmean", dose: 26 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Brainstem Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Larynx Dmean ≤ 45 Gy", kind: "Dmean", dose: 45 },
+          { lbl: "Mandibula Dmax ≤ 70 Gy", kind: "Dmax", dose: 70 }
+        ],
+        defaultPhases: [{ name: "Postop", fx: 30, dpf: 200 }]
+      },
+      postop66: {
+        name: "Postop yüksek risk 66 Gy / 33 fx",
+        refTotal: 66,
+        note: "Ekstrakapsüler ekstansiyon / pozitif sınır.",
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Parotid Dmean ≤ 26 Gy", kind: "Dmean", dose: 26 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Brainstem Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Mandibula Dmax ≤ 70 Gy", kind: "Dmax", dose: 70 },
+          { lbl: "Brachial plexus Dmax ≤ 66 Gy", kind: "Dmax", dose: 66 }
+        ],
+        defaultPhases: [{ name: "Postop HR", fx: 33, dpf: 200 }]
+      },
+      npc70: {
+        name: "Nazofarinks SIB 70/63/56 Gy / 33 fx",
+        refTotal: 70,
+        note: "Definitif kemoRT (sisplatin); RTOG 0615/0225 bazlı.",
+        sources: [
+          { label: "RTOG 0615 / 0225", url: "https://pubmed.ncbi.nlm.nih.gov/19138774/" }
+        ],
+        ptv: [
+          { label: "PTV70 D95% ≥ %95", pct: 95 },
+          { label: "PTV63 D95% ≥ %95", pct: 90 },
+          { label: "PTV56 D95% ≥ %95", pct: 80 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Parotid (en az 1) Dmean ≤ 26 Gy", kind: "Dmean", dose: 26 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Brainstem Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Temporal lob Dmax ≤ 60 Gy", kind: "Dmax", dose: 60 },
+          { lbl: "Cochlea Dmean ≤ 45 Gy", kind: "Dmean", dose: 45 },
+          { lbl: "Optic apparatus Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Optic chiasm Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Lens Dmax ≤ 6 Gy", kind: "Dmax", dose: 6 },
+          { lbl: "Lacrimal gland Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 },
+          { lbl: "Pituitary Dmean ≤ 50 Gy", kind: "Dmean", dose: 50 },
+          { lbl: "Mandibula Dmax ≤ 70 Gy", kind: "Dmax", dose: 70 }
+        ],
+        defaultPhases: [{ name: "SIB NPC", fx: 33, dpf: 212 }]
+      },
+      larynx63: {
+        name: "Erken evre larenks 63 Gy / 28 fx",
+        refTotal: 63,
+        note: "T1-T2 glottik kanser; tek modalite.",
+        sources: [
+          { label: "Yamazaki 2006 (T1-T2 glottik)", url: "https://pubmed.ncbi.nlm.nih.gov/16904851/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Karotid Dmean ≤ 35 Gy", kind: "Dmean", dose: 35 }
+        ],
+        defaultPhases: [{ name: "Larenks", fx: 28, dpf: 225 }]
+      },
+      reirradHN: {
+        name: "Re-irradiation H&N 60 Gy / 30 fx",
+        refTotal: 60,
+        note: "Lokal nüks/ikinci primer; IMRT veya proton; dikkatli OAR yönetimi.",
+        sources: [
+          { label: "RTOG 9610 / RTOG 0421", url: "https://pubmed.ncbi.nlm.nih.gov/18308102/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Spinal cord komülatif Dmax ≤ 25 Gy (re-RT)", kind: "Dmax", dose: 25 },
+          { lbl: "Brainstem komülatif Dmax ≤ 30 Gy (re-RT)", kind: "Dmax", dose: 30 },
+          { lbl: "Karotid Dmean ≤ 45 Gy", kind: "Dmean", dose: 45 },
+          { lbl: "Brachial plexus Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        defaultPhases: [{ name: "Re-RT H&N", fx: 30, dpf: 200 }]
+      },
+      sbrtHN: {
+        name: "H&N SBRT 40-44 Gy / 5 fx (re-irradiation)",
+        refTotal: 44,
+        note: "Re-irradiation veya oligometastaz; AAPM TG-101.",
+        sources: [
+          { label: "AAPM TG-101", url: "https://pubmed.ncbi.nlm.nih.gov/20662446/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %125", pct: 125 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 25 Gy", kind: "Dmax", dose: 25 },
+          { lbl: "Brainstem Dmax ≤ 23 Gy", kind: "Dmax", dose: 23 },
+          { lbl: "Optic apparatus Dmax ≤ 20 Gy", kind: "Dmax", dose: 20 },
+          { lbl: "Mandibula Dmax ≤ 40 Gy", kind: "Dmax", dose: 40 }
+        ],
+        defaultPhases: [{ name: "H&N SBRT", fx: 5, dpf: 880 }]
+      },
+      glottis55: {
+        name: "Glottis hipo 55 Gy / 20 fx",
+        refTotal: 55,
+        note: "T1-T2 glottik hipofraksiyone; UK consensus.",
+        sources: [
+          { label: "UK consensus (Trotti 2014)" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 40 Gy", kind: "Dmax", dose: 40 },
+          { lbl: "Karotid Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 }
+        ],
+        defaultPhases: [{ name: "Glottis hipo", fx: 20, dpf: 275 }]
+      }
+    }
+  },
+
+  akciger: {
+    name: "Akciğer",
+    icon: "AK",
+    protocols: {
+      konv60: {
+        name: "Konvansiyonel 60 Gy / 30 fx",
+        refTotal: 60,
+        note: "Lokal ileri NSCLC konkürran kemoRT.",
+        sources: [
+          { label: "RTOG 0617 (Bradley 2015)", url: "https://pubmed.ncbi.nlm.nih.gov/25601342/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Lung total V20 ≤ %35", kind: "V", dose: 20, vol: 35 },
+          { lbl: "Lung total V5 ≤ %65", kind: "V", dose: 5, vol: 65 },
+          { lbl: "Lung total Dmean ≤ 20 Gy", kind: "Dmean", dose: 20 },
+          { lbl: "Heart V40 ≤ %80", kind: "V", dose: 40, vol: 80 },
+          { lbl: "Heart Dmean ≤ 26 Gy", kind: "Dmean", dose: 26 },
+          { lbl: "Esophagus Dmean ≤ 34 Gy", kind: "Dmean", dose: 34 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy (kemo)", kind: "Dmax", dose: 45 },
+          { lbl: "Brachial plexus Dmax ≤ 66 Gy", kind: "Dmax", dose: 66 }
+        ],
+        defaultPhases: [{ name: "Faz 1", fx: 30, dpf: 200 }]
+      },
+      sbrt54: {
+        name: "SBRT 54 Gy / 3 fx (periferik)",
+        refTotal: 54,
+        note: "Periferik T1-T2 NSCLC; AAPM TG-101 / RTOG 0813.",
+        sources: [
+          { label: "RTOG 0236 (Timmerman 2010)", url: "https://pubmed.ncbi.nlm.nih.gov/20233825/" },
+          { label: "AAPM TG-101", url: "https://pubmed.ncbi.nlm.nih.gov/20662446/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %140", pct: 140 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 18 Gy", kind: "Dmax", dose: 18 },
+          { lbl: "Esophagus Dmax ≤ 27 Gy", kind: "Dmax", dose: 27 },
+          { lbl: "Brachial plexus Dmax ≤ 24 Gy", kind: "Dmax", dose: 24 },
+          { lbl: "Heart Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 },
+          { lbl: "Trakea/PBT Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 },
+          { lbl: "Lung total V20 ≤ %10", kind: "V", dose: 20, vol: 10 },
+          { lbl: "Lung V12.5 ≤ 1500 cc", kind: "DV", vol: "1500cc", dose: 12.5 }
+        ],
+        defaultPhases: [{ name: "SBRT", fx: 3, dpf: 1800 }]
+      },
+      sbrt50: {
+        name: "SBRT 50 Gy / 5 fx (santral/orta)",
+        refTotal: 50,
+        note: "Santral lokasyon; RTOG 0813.",
+        sources: [
+          { label: "RTOG 0813 (Bezjak 2019)", url: "https://pubmed.ncbi.nlm.nih.gov/30943339/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %120", pct: 120 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 },
+          { lbl: "Esophagus Dmax ≤ 35 Gy", kind: "Dmax", dose: 35 },
+          { lbl: "Brachial plexus Dmax ≤ 32 Gy", kind: "Dmax", dose: 32 },
+          { lbl: "Heart Dmax ≤ 38 Gy", kind: "Dmax", dose: 38 },
+          { lbl: "Trakea/PBT Dmax ≤ 40 Gy", kind: "Dmax", dose: 40 },
+          { lbl: "Lung total V20 ≤ %10", kind: "V", dose: 20, vol: 10 }
+        ],
+        defaultPhases: [{ name: "SBRT", fx: 5, dpf: 1000 }]
+      },
+      sbrt48: {
+        name: "SBRT 48 Gy / 4 fx (periferik)",
+        refTotal: 48,
+        note: "Periferik T1; AAPM TG-101 alternatif.",
+        sources: [
+          { label: "RTOG 0813", url: "https://pubmed.ncbi.nlm.nih.gov/30943339/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %130", pct: 130 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 20.8 Gy", kind: "Dmax", dose: 20.8 },
+          { lbl: "Esophagus Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 },
+          { lbl: "Brachial plexus Dmax ≤ 27.2 Gy", kind: "Dmax", dose: 27.2 },
+          { lbl: "Lung V20 ≤ %10", kind: "V", dose: 20, vol: 10 }
+        ],
+        defaultPhases: [{ name: "SBRT 4fx", fx: 4, dpf: 1200 }]
+      },
+      sbrt60_8: {
+        name: "SBRT 60 Gy / 8 fx (ultra-santral)",
+        refTotal: 60,
+        note: "Bronkus/büyük damar yakın; HILUS/SUNSET çalışmaları.",
+        sources: [
+          { label: "HILUS (Lindberg 2021)", url: "https://pubmed.ncbi.nlm.nih.gov/33848617/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %115", pct: 115 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 32 Gy", kind: "Dmax", dose: 32 },
+          { lbl: "Esophagus Dmax ≤ 40 Gy", kind: "Dmax", dose: 40 },
+          { lbl: "Trakea/PBT Dmax ≤ 44 Gy", kind: "Dmax", dose: 44 },
+          { lbl: "Aort Dmax ≤ 56 Gy", kind: "Dmax", dose: 56 },
+          { lbl: "Heart Dmax ≤ 48 Gy", kind: "Dmax", dose: 48 }
+        ],
+        defaultPhases: [{ name: "SBRT 8fx", fx: 8, dpf: 750 }]
+      },
+      konv66: {
+        name: "Konvansiyonel 66 Gy / 33 fx",
+        refTotal: 66,
+        note: "Lokal ileri NSCLC; PACIFIC öncesi durvalumab.",
+        sources: [
+          { label: "PACIFIC (Antonia 2017)", url: "https://pubmed.ncbi.nlm.nih.gov/28885881/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Lung total V20 ≤ %35", kind: "V", dose: 20, vol: 35 },
+          { lbl: "Lung total Dmean ≤ 20 Gy", kind: "Dmean", dose: 20 },
+          { lbl: "Heart V40 ≤ %50", kind: "V", dose: 40, vol: 50 },
+          { lbl: "Esophagus Dmean ≤ 34 Gy", kind: "Dmean", dose: 34 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 }
+        ],
+        defaultPhases: [{ name: "Konv66", fx: 33, dpf: 200 }]
+      },
+      hipo55: {
+        name: "Hipofraksiyone 55 Gy / 20 fx (CHISEL)",
+        refTotal: 55,
+        note: "Erken evre NSCLC moderate hipo (CHISEL benzeri).",
+        sources: [
+          { label: "CHISEL (Ball 2019)", url: "https://pubmed.ncbi.nlm.nih.gov/30664299/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Lung total V20 ≤ %25", kind: "V", dose: 20, vol: 25 },
+          { lbl: "Heart V25 ≤ %30", kind: "V", dose: 25, vol: 30 },
+          { lbl: "Spinal cord Dmax ≤ 36 Gy", kind: "Dmax", dose: 36 },
+          { lbl: "Esophagus Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        defaultPhases: [{ name: "Hipo", fx: 20, dpf: 275 }]
+      },
+      sclc45bid: {
+        name: "SCLC sınırlı evre 45 Gy bid / 30 fx",
+        refTotal: 45,
+        note: "INT 0096 / CONVERT; konkürran sisplatin/etoposit; günde 2 fraksiyon (≥6 saat).",
+        sources: [
+          { label: "INT 0096 (Turrisi 1999)", url: "https://pubmed.ncbi.nlm.nih.gov/9920949/" },
+          { label: "CONVERT", url: "https://pubmed.ncbi.nlm.nih.gov/28642008/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Lung V20 ≤ %30", kind: "V", dose: 20, vol: 30 },
+          { lbl: "Lung Dmean ≤ 20 Gy", kind: "Dmean", dose: 20 },
+          { lbl: "Spinal cord Dmax ≤ 36 Gy", kind: "Dmax", dose: 36 },
+          { lbl: "Esophagus Dmean ≤ 34 Gy", kind: "Dmean", dose: 34 },
+          { lbl: "Heart Dmean ≤ 26 Gy", kind: "Dmean", dose: 26 }
+        ],
+        defaultPhases: [{ name: "SCLC bid", fx: 30, dpf: 150 }]
+      },
+      sclc66: {
+        name: "SCLC sınırlı evre 66 Gy / 33 fx (konv)",
+        refTotal: 66,
+        note: "CONVERT konvansiyonel kol; konkürran kemoterapi.",
+        sources: [
+          { label: "CONVERT (Faivre-Finn 2017)", url: "https://pubmed.ncbi.nlm.nih.gov/28642008/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Lung V20 ≤ %35", kind: "V", dose: 20, vol: 35 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Esophagus Dmean ≤ 34 Gy", kind: "Dmean", dose: 34 }
+        ],
+        defaultPhases: [{ name: "SCLC konv", fx: 33, dpf: 200 }]
+      },
+      pci25: {
+        name: "PCI 25 Gy / 10 fx",
+        refTotal: 25,
+        note: "Profilaktik kraniyal ışınlama (SCLC remisyon sonrası).",
+        sources: [
+          { label: "PCI 99-01 (Le Pechoux)", url: "https://pubmed.ncbi.nlm.nih.gov/19524507/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Hippocampus Dmean ≤ 8 Gy", kind: "Dmean", dose: 8 },
+          { lbl: "Hippocampus Dmax ≤ 16 Gy", kind: "Dmax", dose: 16 },
+          { lbl: "Lens Dmax ≤ 7 Gy", kind: "Dmax", dose: 7 }
+        ],
+        defaultPhases: [{ name: "PCI", fx: 10, dpf: 250 }]
+      }
+    }
+  },
+
+  beyin: {
+    name: "Beyin",
+    icon: "BR",
+    protocols: {
+      wbrt30: {
+        name: "WBRT 30 Gy / 10 fx",
+        refTotal: 30,
+        note: "Multiple beyin metastazları için palyatif tüm beyin.",
+        sources: [
+          { label: "RTOG 9508 / klasik palyatif" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Lens Dmax ≤ 7 Gy", kind: "Dmax", dose: 7 },
+          { lbl: "Optic apparatus Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 },
+          { lbl: "Cochlea Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 }
+        ],
+        defaultPhases: [{ name: "WBRT", fx: 10, dpf: 300 }]
+      },
+      glioma60: {
+        name: "Glioblastom 60 Gy / 30 fx",
+        refTotal: 60,
+        note: "Stupp protokolü; concurrent temozolomid.",
+        sources: [
+          { label: "Stupp 2005", url: "https://pubmed.ncbi.nlm.nih.gov/15758009/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Brainstem Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Optic chiasm Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Optic nerve Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Lens Dmax ≤ 7 Gy", kind: "Dmax", dose: 7 },
+          { lbl: "Retina Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Cochlea Dmean ≤ 35 Gy", kind: "Dmean", dose: 35 },
+          { lbl: "Hippocampus Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 }
+        ],
+        defaultPhases: [{ name: "Glioblastom", fx: 30, dpf: 200 }]
+      },
+      srs1: {
+        name: "SRS 20 Gy / 1 fx",
+        refTotal: 20,
+        note: "Tek fraksiyon stereotaktik; küçük metastaz.",
+        sources: [
+          { label: "RTOG 9508 (Andrews 2004)", url: "https://pubmed.ncbi.nlm.nih.gov/15158627/" },
+          { label: "QUANTEC SRS (Lawrence 2010)" }
+        ],
+        ptv: [
+          { label: "PTV D95% ≥ Rx %95", pct: 95 },
+          { label: "PTV Dmax ≤ Rx %130", pct: 130 }
+        ],
+        oar: [
+          { lbl: "Brainstem Dmax ≤ 12.5 Gy", kind: "Dmax", dose: 12.5 },
+          { lbl: "Optic apparatus Dmax ≤ 8 Gy", kind: "Dmax", dose: 8 },
+          { lbl: "Cochlea Dmean ≤ 9 Gy", kind: "Dmean", dose: 9 },
+          { lbl: "Brain V12 ≤ 10 cc", kind: "DV", vol: "10cc", dose: 12 }
+        ],
+        defaultPhases: [{ name: "SRS", fx: 1, dpf: 2000 }]
+      },
+      srt27: {
+        name: "SRT 27 Gy / 3 fx",
+        refTotal: 27,
+        note: "Üç fraksiyon SRT; orta büyük metastaz veya re-RT.",
+        sources: [
+          { label: "Minniti 2014 (3-fx HSRT)", url: "https://pubmed.ncbi.nlm.nih.gov/24351464/" }
+        ],
+        ptv: [
+          { label: "PTV D95% ≥ Rx %95", pct: 95 },
+          { label: "PTV Dmax ≤ Rx %130", pct: 130 }
+        ],
+        oar: [
+          { lbl: "Brainstem Dmax ≤ 18 Gy", kind: "Dmax", dose: 18 },
+          { lbl: "Optic apparatus Dmax ≤ 15 Gy", kind: "Dmax", dose: 15 },
+          { lbl: "Brain V18 ≤ 10 cc", kind: "DV", vol: "10cc", dose: 18 }
+        ],
+        defaultPhases: [{ name: "SRT", fx: 3, dpf: 900 }]
+      },
+      srt30_5: {
+        name: "SRT 30 Gy / 5 fx",
+        refTotal: 30,
+        note: "Büyük lezyon (>3 cm) veya kritik yapı yakını.",
+        sources: [
+          { label: "5-fraksiyon HSRT klinik pratik" }
+        ],
+        ptv: [
+          { label: "PTV D95% ≥ Rx %95", pct: 95 },
+          { label: "PTV Dmax ≤ Rx %125", pct: 125 }
+        ],
+        oar: [
+          { lbl: "Brainstem Dmax ≤ 23 Gy", kind: "Dmax", dose: 23 },
+          { lbl: "Optic apparatus Dmax ≤ 25 Gy", kind: "Dmax", dose: 25 },
+          { lbl: "Brain V25 ≤ 10 cc", kind: "DV", vol: "10cc", dose: 25 }
+        ],
+        defaultPhases: [{ name: "SRT 5fx", fx: 5, dpf: 600 }]
+      },
+      wbrt20: {
+        name: "WBRT 20 Gy / 5 fx (palyatif)",
+        refTotal: 20,
+        note: "Kısa kurs palyatif; performansı düşük hastalar.",
+        sources: [
+          { label: "Mulvenna QUARTZ (NSCLC met)", url: "https://pubmed.ncbi.nlm.nih.gov/27604504/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Lens Dmax ≤ 5 Gy", kind: "Dmax", dose: 5 },
+          { lbl: "Cochlea Dmean ≤ 20 Gy", kind: "Dmean", dose: 20 }
+        ],
+        defaultPhases: [{ name: "WBRT palyatif", fx: 5, dpf: 400 }]
+      },
+      hawbrt: {
+        name: "Hippocampal-Avoidance WBRT 30 Gy / 10 fx (NRG-CC001)",
+        refTotal: 30,
+        note: "Memantin + hippokampal avoidance; NRG-CC001.",
+        sources: [
+          { label: "NRG-CC001 (Brown 2020)", url: "https://pubmed.ncbi.nlm.nih.gov/32484959/" }
+        ],
+        ptv: [
+          { label: "PTV D95% ≥ %92", pct: 92 },
+          { label: "PTV D2% ≤ %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Hippocampus D100% ≤ 9 Gy", kind: "Dmax", dose: 9 },
+          { lbl: "Hippocampus Dmax ≤ 16 Gy", kind: "Dmax", dose: 16 },
+          { lbl: "Optic apparatus Dmax ≤ 37.5 Gy", kind: "Dmax", dose: 37.5 },
+          { lbl: "Lens Dmax ≤ 7 Gy", kind: "Dmax", dose: 7 }
+        ],
+        defaultPhases: [{ name: "HA-WBRT", fx: 10, dpf: 300 }]
+      },
+      wbrtSib: {
+        name: "WBRT + SIB metastaz 30 + 9 Gy / 10 fx",
+        refTotal: 39,
+        note: "WBRT + simultane integre boost; oligometastaz.",
+        sources: [
+          { label: "Klinik pratik (oligo met SIB)" }
+        ],
+        ptv: [
+          { label: "PTV_Brain (30) D95%", pct: 77 },
+          { label: "PTV_Met (39) D95%", pct: 95 },
+          { label: "Dmax ≤ Rx %120", pct: 120 }
+        ],
+        oar: [
+          { lbl: "Hippocampus Dmean ≤ 10 Gy", kind: "Dmean", dose: 10 },
+          { lbl: "Brainstem Dmax ≤ 35 Gy", kind: "Dmax", dose: 35 },
+          { lbl: "Optic apparatus Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 }
+        ],
+        defaultPhases: [{ name: "WBRT+SIB", fx: 10, dpf: 390 }]
+      },
+      anaplastic: {
+        name: "Anaplastic glioma 60 Gy / 30 fx",
+        refTotal: 60,
+        note: "Anaplastic astrositoma/oligodendroglioma; PCV adjuvan.",
+        sources: [
+          { label: "RTOG 9402 (oligo)", url: "https://pubmed.ncbi.nlm.nih.gov/22291080/" },
+          { label: "EORTC 26951", url: "https://pubmed.ncbi.nlm.nih.gov/23071237/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Brainstem Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Optic apparatus Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Lens Dmax ≤ 7 Gy", kind: "Dmax", dose: 7 },
+          { lbl: "Cochlea Dmean ≤ 45 Gy", kind: "Dmean", dose: 45 }
+        ],
+        defaultPhases: [{ name: "Anaplastic", fx: 30, dpf: 200 }]
+      },
+      lgg54: {
+        name: "Düşük dereceli glioma 54 Gy / 30 fx",
+        refTotal: 54,
+        note: "LGG; RTOG 9802 / EORTC 22844.",
+        sources: [
+          { label: "RTOG 9802 (Buckner 2016)", url: "https://pubmed.ncbi.nlm.nih.gov/27050206/" },
+          { label: "EORTC 22844" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Brainstem Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Optic apparatus Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Hippocampus Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 },
+          { lbl: "Pituitary Dmean ≤ 40 Gy", kind: "Dmean", dose: 40 }
+        ],
+        defaultPhases: [{ name: "LGG", fx: 30, dpf: 180 }]
+      },
+      vsSRS: {
+        name: "Vestibüler schwannom SRS 12 Gy / 1 fx",
+        refTotal: 12,
+        note: "Akustik nörom; işitme koruyucu SRS.",
+        sources: [
+          { label: "Kondziolka SRS akustik nörom", url: "https://pubmed.ncbi.nlm.nih.gov/9806168/" }
+        ],
+        ptv: [
+          { label: "PTV D95% ≥ %95", pct: 95 },
+          { label: "PTV Dmax ≤ %130", pct: 130 }
+        ],
+        oar: [
+          { lbl: "Cochlea Dmean ≤ 4 Gy", kind: "Dmean", dose: 4 },
+          { lbl: "Brainstem Dmax ≤ 12 Gy", kind: "Dmax", dose: 12 },
+          { lbl: "Trigeminal nerve Dmax ≤ 12 Gy", kind: "Dmax", dose: 12 },
+          { lbl: "Facial nerve Dmax ≤ 12 Gy", kind: "Dmax", dose: 12 }
+        ],
+        defaultPhases: [{ name: "VS SRS", fx: 1, dpf: 1200 }]
+      },
+      meningioma54: {
+        name: "Menenjiom 54 Gy / 30 fx",
+        refTotal: 54,
+        note: "Grade I-II atipik menenjiom; fraksiyone SRT.",
+        sources: [
+          { label: "Goldsmith 1994 + RTOG 0539" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Optic apparatus Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Brainstem Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Lens Dmax ≤ 7 Gy", kind: "Dmax", dose: 7 },
+          { lbl: "Retina Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 }
+        ],
+        defaultPhases: [{ name: "Menenjiom", fx: 30, dpf: 180 }]
+      }
+    }
+  },
+
+  rektum: {
+    name: "Rektum",
+    icon: "RK",
+    protocols: {
+      long504: {
+        name: "Long course 50.4 Gy / 28 fx (neoadjuvan)",
+        refTotal: 50.4,
+        note: "Neoadjuvan kemoRT; 5-FU veya kapesitabin. Standart kombinasyon.",
+        sources: [
+          { label: "Sauer (German Rectal Cancer)", url: "https://pubmed.ncbi.nlm.nih.gov/15496622/" },
+          { label: "RTOG 0822" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "D98% ≥ Rx %90", pct: 90 },
+          { label: "D2% ≤ Rx %107", pct: 107 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Mesane V40 ≤ %50", kind: "V", dose: 40, vol: 50 },
+          { lbl: "Mesane V50 ≤ %35", kind: "V", dose: 50, vol: 35 },
+          { lbl: "Mesane Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "İnce barsak V15 ≤ 120 cc", kind: "DV", vol: "120cc", dose: 15 },
+          { lbl: "İnce barsak V40 ≤ %30", kind: "V", dose: 40, vol: 30 },
+          { lbl: "İnce barsak V45 ≤ 195 cc", kind: "DV", vol: "195cc", dose: 45 },
+          { lbl: "İnce barsak Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Femur_R Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Femur_L Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Femur V30 ≤ %50", kind: "V", dose: 30, vol: 50 },
+          { lbl: "Anal kanal Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 },
+          { lbl: "Anal kanal V40 ≤ %35", kind: "V", dose: 40, vol: 35 },
+          { lbl: "Eksternal genitalia Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 },
+          { lbl: "Penis bulbu Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 }
+        ],
+        defaultPhases: [{ name: "Long course", fx: 28, dpf: 180 }]
+      },
+      long45: {
+        name: "Long course 45 Gy / 25 fx (klasik)",
+        refTotal: 45,
+        note: "Klasik 1.8 Gy/fx, daha düşük doz.",
+        sources: [
+          { label: "Klasik long course (EORTC 22921)", url: "https://pubmed.ncbi.nlm.nih.gov/16971718/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Mesane V40 ≤ %50", kind: "V", dose: 40, vol: 50 },
+          { lbl: "İnce barsak V40 ≤ %30", kind: "V", dose: 40, vol: 30 },
+          { lbl: "Femur Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 }
+        ],
+        defaultPhases: [{ name: "Long course klasik", fx: 25, dpf: 180 }]
+      },
+      sib54: {
+        name: "SIB 45/54 Gy / 25 fx (TNT)",
+        refTotal: 54,
+        note: "Total neoadjuvan tedavi (TNT); GTV'ye SIB boost ile.",
+        sources: [
+          { label: "RAPIDO (Bahadoer 2021)", url: "https://pubmed.ncbi.nlm.nih.gov/33301740/" },
+          { label: "OPRA (Garcia-Aguilar 2022)", url: "https://pubmed.ncbi.nlm.nih.gov/35483079/" }
+        ],
+        ptv: [
+          { label: "PTV_Elektif (45) D95% ≥ %95", pct: 83 },
+          { label: "PTV_Boost (54) D95% ≥ %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Mesane V50 ≤ %35", kind: "V", dose: 50, vol: 35 },
+          { lbl: "Mesane V40 ≤ %50", kind: "V", dose: 40, vol: 50 },
+          { lbl: "İnce barsak V40 ≤ %30", kind: "V", dose: 40, vol: 30 },
+          { lbl: "İnce barsak V45 ≤ 195 cc", kind: "DV", vol: "195cc", dose: 45 },
+          { lbl: "Femur Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Anal kanal Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 }
+        ],
+        defaultPhases: [{ name: "SIB TNT", fx: 25, dpf: 216 }]
+      },
+      seq540: {
+        name: "Sequential 45 + 5.4 Gy boost / 28 fx",
+        refTotal: 50.4,
+        note: "Klasik long course + sequential boost.",
+        sources: [
+          { label: "RTOG 0822" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Mesane V40 ≤ %50", kind: "V", dose: 40, vol: 50 },
+          { lbl: "Mesane V50 ≤ %35", kind: "V", dose: 50, vol: 35 },
+          { lbl: "İnce barsak V40 ≤ %30", kind: "V", dose: 40, vol: 30 },
+          { lbl: "Femur Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Anal kanal Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 }
+        ],
+        defaultPhases: [
+          { name: "Faz 1 (Elektif)", fx: 25, dpf: 180 },
+          { name: "Faz 2 (Boost)", fx: 3, dpf: 180 }
+        ]
+      },
+      short25: {
+        name: "Short course 25 Gy / 5 fx (Stockholm III)",
+        refTotal: 25,
+        note: "Kısa kurs preop; Stockholm III bazlı; OPRA / RAPIDO ortalama.",
+        sources: [
+          { label: "Stockholm III (Erlandsson 2017)", url: "https://pubmed.ncbi.nlm.nih.gov/28258740/" },
+          { label: "RAPIDO short course", url: "https://pubmed.ncbi.nlm.nih.gov/33301740/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Mesane V20 ≤ %50", kind: "V", dose: 20, vol: 50 },
+          { lbl: "Mesane V23 ≤ %20", kind: "V", dose: 23, vol: 20 },
+          { lbl: "İnce barsak V15 ≤ 120 cc", kind: "DV", vol: "120cc", dose: 15 },
+          { lbl: "İnce barsak V20 ≤ 60 cc", kind: "DV", vol: "60cc", dose: 20 },
+          { lbl: "Femur Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 },
+          { lbl: "Anal kanal Dmean ≤ 15 Gy", kind: "Dmean", dose: 15 }
+        ],
+        defaultPhases: [{ name: "Short course", fx: 5, dpf: 500 }]
+      },
+      sbrt40: {
+        name: "Reirradiation/SBRT 40 Gy / 5 fx",
+        refTotal: 40,
+        note: "Yeniden ışınlama veya oligometastaz; doku tolerans bireysel değerlendirilir.",
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %120", pct: 120 }
+        ],
+        oar: [
+          { lbl: "İnce barsak Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 },
+          { lbl: "Mesane Dmax ≤ 38 Gy", kind: "Dmax", dose: 38 },
+          { lbl: "Sigmoid Dmax ≤ 32 Gy", kind: "Dmax", dose: 32 },
+          { lbl: "Cauda equina Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 }
+        ],
+        defaultPhases: [{ name: "SBRT/Reirradiation", fx: 5, dpf: 800 }]
+      },
+      palliatif: {
+        name: "Palyatif 30 Gy / 10 fx",
+        refTotal: 30,
+        note: "Semptomatik palyasyon (kanama, ağrı).",
+        sources: [
+          { label: "Standart palyatif rejim" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Mesane V25 ≤ %50", kind: "V", dose: 25, vol: 50 },
+          { lbl: "İnce barsak V15 ≤ 120 cc", kind: "DV", vol: "120cc", dose: 15 },
+          { lbl: "Femur Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 }
+        ],
+        defaultPhases: [{ name: "Palyatif", fx: 10, dpf: 300 }]
+      }
+    }
+  },
+
+  serviks: {
+    name: "Serviks",
+    icon: "SV",
+    protocols: {
+      ebrt504: {
+        name: "EBRT 50.4 Gy / 28 fx (+ brakiterapi)",
+        refTotal: 50.4,
+        note: "Definitif kemoRT EBRT; sonrası brakiterapi (ayrı).",
+        sources: [
+          { label: "GOG 165 / GEC-ESTRO", url: "https://pubmed.ncbi.nlm.nih.gov/12064879/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Rektum V40 ≤ %80", kind: "V", dose: 40, vol: 80 },
+          { lbl: "Rektum V50 ≤ %50", kind: "V", dose: 50, vol: 50 },
+          { lbl: "Mesane V40 ≤ %80", kind: "V", dose: 40, vol: 80 },
+          { lbl: "Mesane V50 ≤ %35", kind: "V", dose: 50, vol: 35 },
+          { lbl: "İnce barsak V40 ≤ %30", kind: "V", dose: 40, vol: 30 },
+          { lbl: "Femur Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Kemik iliği V10 ≤ %90", kind: "V", dose: 10, vol: 90 },
+          { lbl: "Kemik iliği V20 ≤ %75", kind: "V", dose: 20, vol: 75 }
+        ],
+        defaultPhases: [{ name: "EBRT", fx: 28, dpf: 180 }]
+      },
+      sibBoost: {
+        name: "SIB 45/55 Gy / 25 fx (lenf nodu boost)",
+        refTotal: 55,
+        note: "Simultane lenf nodu boost; FIGO IIIC için.",
+        sources: [
+          { label: "EMBRACE-II rehberi", url: "https://pubmed.ncbi.nlm.nih.gov/29691068/" }
+        ],
+        ptv: [
+          { label: "PTV_LN D95% ≥ Rx %95", pct: 95 },
+          { label: "PTV_Elektif D95% (45 Gy)", pct: 82 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Rektum V50 ≤ %50", kind: "V", dose: 50, vol: 50 },
+          { lbl: "Mesane V50 ≤ %35", kind: "V", dose: 50, vol: 35 },
+          { lbl: "İnce barsak V40 ≤ %30", kind: "V", dose: 40, vol: 30 }
+        ],
+        defaultPhases: [{ name: "SIB", fx: 25, dpf: 220 }]
+      },
+      postop504: {
+        name: "Postop adjuvan 50.4 Gy / 28 fx",
+        refTotal: 50.4,
+        note: "Postoperatif adjuvan; tümör boyutu, sınır durumu, LN tutulumu önemli.",
+        sources: [
+          { label: "PORTEC-3 (de Boer 2018)", url: "https://pubmed.ncbi.nlm.nih.gov/29449189/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Rektum V40 ≤ %80", kind: "V", dose: 40, vol: 80 },
+          { lbl: "Rektum V50 ≤ %50", kind: "V", dose: 50, vol: 50 },
+          { lbl: "Mesane V40 ≤ %80", kind: "V", dose: 40, vol: 80 },
+          { lbl: "Mesane V50 ≤ %35", kind: "V", dose: 50, vol: 35 },
+          { lbl: "İnce barsak V40 ≤ %30", kind: "V", dose: 40, vol: 30 },
+          { lbl: "Femur Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Vajinal kaf Dmax ≤ 55 Gy", kind: "Dmax", dose: 55 }
+        ],
+        defaultPhases: [{ name: "Postop", fx: 28, dpf: 180 }]
+      },
+      paraaortic: {
+        name: "EBRT + Para-aortik 50.4/45 Gy / 28 fx",
+        refTotal: 50.4,
+        note: "Para-aortik lenf nodu tutulumu varsa genişletilmiş saha.",
+        sources: [
+          { label: "Extended-field klinik pratik" }
+        ],
+        ptv: [
+          { label: "PTV_Pelvik (50.4) D95% ≥ %95", pct: 95 },
+          { label: "PTV_PA (45) D95% ≥ %95", pct: 89 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Böbrek bilateral V18 ≤ %35", kind: "V", dose: 18, vol: 35 },
+          { lbl: "Böbrek bilateral Dmean ≤ 18 Gy", kind: "Dmean", dose: 18 },
+          { lbl: "Karaciğer Dmean ≤ 25 Gy", kind: "Dmean", dose: 25 },
+          { lbl: "Kemik iliği V10 ≤ %90", kind: "V", dose: 10, vol: 90 },
+          { lbl: "İnce barsak V40 ≤ %30", kind: "V", dose: 40, vol: 30 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Duodenum V40 ≤ %30", kind: "V", dose: 40, vol: 30 }
+        ],
+        defaultPhases: [{ name: "EBRT geniş saha", fx: 28, dpf: 180 }]
+      },
+      ebrtBrachy: {
+        name: "EBRT 45 Gy + brakı boost (kombine reçete)",
+        refTotal: 75,
+        note: "EBRT 45 Gy + HDR brakı 4×7 Gy (EQD2 ≈ 80-85 Gy nokta A). Brakı ayrı sistem.",
+        sources: [
+          { label: "ABS / GEC-ESTRO rehberleri" }
+        ],
+        ptv: [
+          { label: "EBRT D95% ≥ %95", pct: 60 },
+          { label: "Dmax ≤ Rx %107 (EBRT)", pct: 64 }
+        ],
+        oar: [
+          { lbl: "Rektum EBRT V40 ≤ %80", kind: "V", dose: 40, vol: 80 },
+          { lbl: "Mesane EBRT V40 ≤ %80", kind: "V", dose: 40, vol: 80 },
+          { lbl: "İnce barsak EBRT V40 ≤ %30", kind: "V", dose: 40, vol: 30 }
+        ],
+        defaultPhases: [{ name: "EBRT", fx: 25, dpf: 180 }]
+      },
+      hdrBrachy: {
+        name: "HDR brakı 4×7 Gy (intrakaviter)",
+        refTotal: 28,
+        note: "Tek başına; EBRT sonrası boost (nokta A reçetesi).",
+        sources: [
+          { label: "GEC-ESTRO Recommendations (Pötter 2006)", url: "https://pubmed.ncbi.nlm.nih.gov/16403579/" }
+        ],
+        ptv: [
+          { label: "D90% HR-CTV ≥ Rx", pct: 100 },
+          { label: "D98% IR-CTV ≥ %85", pct: 85 }
+        ],
+        oar: [
+          { lbl: "Rektum D2cc ≤ 75 Gy EQD2 (kombi)", kind: "DV", vol: "2cc", dose: 16 },
+          { lbl: "Mesane D2cc ≤ 90 Gy EQD2 (kombi)", kind: "DV", vol: "2cc", dose: 20 },
+          { lbl: "Sigmoid D2cc ≤ 75 Gy EQD2 (kombi)", kind: "DV", vol: "2cc", dose: 16 }
+        ],
+        defaultPhases: [{ name: "HDR brakı", fx: 4, dpf: 700 }]
+      }
+    }
+  },
+
+  ozofagus: {
+    name: "Özofagus",
+    icon: "ÖZ",
+    protocols: {
+      def504: {
+        name: "Definitif kemoRT 50.4 Gy / 28 fx",
+        refTotal: 50.4,
+        note: "Konkürran kemoterapi ile definitif.",
+        sources: [
+          { label: "RTOG 8501 (Herskovic)", url: "https://pubmed.ncbi.nlm.nih.gov/1584260/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Lung total V20 ≤ %25", kind: "V", dose: 20, vol: 25 },
+          { lbl: "Lung total V5 ≤ %60", kind: "V", dose: 5, vol: 60 },
+          { lbl: "Lung total Dmean ≤ 18 Gy", kind: "Dmean", dose: 18 },
+          { lbl: "Heart V30 ≤ %30", kind: "V", dose: 30, vol: 30 },
+          { lbl: "Heart Dmean ≤ 26 Gy", kind: "Dmean", dose: 26 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Liver Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 },
+          { lbl: "Kidney bilateral V18 ≤ %50", kind: "V", dose: 18, vol: 50 }
+        ],
+        defaultPhases: [{ name: "Definitif", fx: 28, dpf: 180 }]
+      },
+      preop414: {
+        name: "Preop kemoRT 41.4 Gy / 23 fx (CROSS)",
+        refTotal: 41.4,
+        note: "CROSS trial; karboplatin/paklitaksel ile preop.",
+        sources: [
+          { label: "CROSS (van Hagen 2012)", url: "https://pubmed.ncbi.nlm.nih.gov/22646630/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Lung total V20 ≤ %20", kind: "V", dose: 20, vol: 20 },
+          { lbl: "Lung total Dmean ≤ 15 Gy", kind: "Dmean", dose: 15 },
+          { lbl: "Heart V30 ≤ %30", kind: "V", dose: 30, vol: 30 },
+          { lbl: "Spinal cord Dmax ≤ 41.4 Gy", kind: "Dmax", dose: 41.4 },
+          { lbl: "Liver Dmean ≤ 25 Gy", kind: "Dmean", dose: 25 }
+        ],
+        defaultPhases: [{ name: "CROSS preop", fx: 23, dpf: 180 }]
+      },
+      def50: {
+        name: "Definitif 50 Gy / 25 fx (RTOG 0436)",
+        refTotal: 50,
+        note: "RTOG 0436; konkürran sisplatin/paklitaksel.",
+        sources: [
+          { label: "RTOG 0436 (Suntharalingam 2017)", url: "https://pubmed.ncbi.nlm.nih.gov/28618255/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Lung total V20 ≤ %25", kind: "V", dose: 20, vol: 25 },
+          { lbl: "Lung total V5 ≤ %60", kind: "V", dose: 5, vol: 60 },
+          { lbl: "Heart V40 ≤ %50", kind: "V", dose: 40, vol: 50 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Liver Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 }
+        ],
+        defaultPhases: [{ name: "Definitif 50Gy", fx: 25, dpf: 200 }]
+      },
+      def60: {
+        name: "Definitif 60 Gy / 30 fx (yüksek doz)",
+        refTotal: 60,
+        note: "Doz arttırımı denemeleri; dikkatli OAR yönetimi.",
+        sources: [
+          { label: "RTOG 0436 yüksek doz kolu", url: "https://pubmed.ncbi.nlm.nih.gov/28618255/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Lung total V20 ≤ %25", kind: "V", dose: 20, vol: 25 },
+          { lbl: "Lung total Dmean ≤ 18 Gy", kind: "Dmean", dose: 18 },
+          { lbl: "Heart V30 ≤ %30", kind: "V", dose: 30, vol: 30 },
+          { lbl: "Heart Dmean ≤ 26 Gy", kind: "Dmean", dose: 26 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Liver Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 }
+        ],
+        defaultPhases: [{ name: "Definitif 60Gy", fx: 30, dpf: 200 }]
+      },
+      servikal66: {
+        name: "Servikal özofagus 66 Gy / 33 fx",
+        refTotal: 66,
+        note: "Servikal lokasyon; H&N benzeri yaklaşım.",
+        sources: [
+          { label: "Servikal özofagus H&N benzeri rejim" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Larynx Dmean ≤ 45 Gy", kind: "Dmean", dose: 45 },
+          { lbl: "Parotid Dmean ≤ 26 Gy", kind: "Dmean", dose: 26 },
+          { lbl: "Brachial plexus Dmax ≤ 66 Gy", kind: "Dmax", dose: 66 },
+          { lbl: "Lung total V20 ≤ %25", kind: "V", dose: 20, vol: 25 }
+        ],
+        defaultPhases: [{ name: "Servikal", fx: 33, dpf: 200 }]
+      },
+      palliatif: {
+        name: "Palyatif 30 Gy / 10 fx",
+        refTotal: 30,
+        note: "Disfaji palyasyonu; performansı düşük hastalar.",
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 },
+          { lbl: "Lung V20 ≤ %20", kind: "V", dose: 20, vol: 20 }
+        ],
+        defaultPhases: [{ name: "Palyatif", fx: 10, dpf: 300 }]
+      },
+      sib504: {
+        name: "SIB 41.4/50.4 Gy / 23 fx (preop boost)",
+        refTotal: 50.4,
+        note: "CROSS bazlı preop; tümöre simultane integre boost.",
+        sources: [
+          { label: "CROSS SIB modifikasyonu" }
+        ],
+        ptv: [
+          { label: "PTV_Elektif (41.4) D95% ≥ %95", pct: 78 },
+          { label: "PTV_Boost (50.4) D95% ≥ %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Lung V20 ≤ %25", kind: "V", dose: 20, vol: 25 },
+          { lbl: "Heart V40 ≤ %50", kind: "V", dose: 40, vol: 50 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Liver Dmean ≤ 25 Gy", kind: "Dmean", dose: 25 }
+        ],
+        defaultPhases: [{ name: "SIB preop", fx: 23, dpf: 219 }]
+      }
+    }
+  },
+
+  pankreas: {
+    name: "Pankreas",
+    icon: "PK",
+    protocols: {
+      def504: {
+        name: "Definitif kemoRT 50.4 Gy / 28 fx",
+        refTotal: 50.4,
+        note: "Borderline rezektabl / unrezektabl; gemsitabin veya FOLFIRINOX.",
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Böbrek bilateral V18 ≤ %35", kind: "V", dose: 18, vol: 35 },
+          { lbl: "Böbrek bilateral Dmean ≤ 18 Gy", kind: "Dmean", dose: 18 },
+          { lbl: "Karaciğer Dmean ≤ 25 Gy", kind: "Dmean", dose: 25 },
+          { lbl: "Karaciğer V35 ≤ %50", kind: "V", dose: 35, vol: 50 },
+          { lbl: "Mide V45 ≤ %15", kind: "V", dose: 45, vol: 15 },
+          { lbl: "Mide V50 ≤ %5", kind: "V", dose: 50, vol: 5 },
+          { lbl: "Duodenum V50 ≤ %10", kind: "V", dose: 50, vol: 10 },
+          { lbl: "Duodenum V45 ≤ %15", kind: "V", dose: 45, vol: 15 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "İnce barsak V45 ≤ 195 cc", kind: "DV", vol: "195cc", dose: 45 }
+        ],
+        defaultPhases: [{ name: "Definitif", fx: 28, dpf: 180 }]
+      },
+      sbrt33: {
+        name: "Pankreas SBRT 33 Gy / 5 fx",
+        refTotal: 33,
+        note: "Borderline rezektabl preop SBRT; Alliance A021501.",
+        sources: [
+          { label: "Alliance A021501 (Katz 2022)", url: "https://pubmed.ncbi.nlm.nih.gov/35857333/" },
+          { label: "Mahadevan 2010 (5-fx)", url: "https://pubmed.ncbi.nlm.nih.gov/19735865/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %120", pct: 120 }
+        ],
+        oar: [
+          { lbl: "Duodenum Dmax ≤ 35 Gy", kind: "Dmax", dose: 35 },
+          { lbl: "Duodenum V20 ≤ 20 cc", kind: "DV", vol: "20cc", dose: 20 },
+          { lbl: "Mide Dmax ≤ 35 Gy", kind: "Dmax", dose: 35 },
+          { lbl: "Mide V20 ≤ 20 cc", kind: "DV", vol: "20cc", dose: 20 },
+          { lbl: "Karaciğer V12 ≤ 50%", kind: "V", dose: 12, vol: 50 },
+          { lbl: "Spinal cord Dmax ≤ 22 Gy", kind: "Dmax", dose: 22 },
+          { lbl: "Böbrek V12 ≤ %25", kind: "V", dose: 12, vol: 25 }
+        ],
+        defaultPhases: [{ name: "SBRT", fx: 5, dpf: 660 }]
+      },
+      adjuvan45: {
+        name: "Adjuvan 45 Gy / 25 fx + boost",
+        refTotal: 50.4,
+        note: "Rezeksiyon sonrası adjuvan; GITSG / ESPAC esinli.",
+        sources: [
+          { label: "ESPAC-1 (Neoptolemos 2004)", url: "https://pubmed.ncbi.nlm.nih.gov/15028824/" },
+          { label: "GITSG" }
+        ],
+        ptv: [
+          { label: "PTV_Elektif (45) D95% ≥ %95", pct: 89 },
+          { label: "PTV_Boost (50.4) D95% ≥ %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Böbrek Dmean ≤ 18 Gy", kind: "Dmean", dose: 18 },
+          { lbl: "Karaciğer Dmean ≤ 25 Gy", kind: "Dmean", dose: 25 },
+          { lbl: "Mide V45 ≤ %15", kind: "V", dose: 45, vol: 15 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 }
+        ],
+        defaultPhases: [
+          { name: "Faz 1 (Elektif)", fx: 25, dpf: 180 },
+          { name: "Faz 2 (Boost)", fx: 3, dpf: 180 }
+        ]
+      }
+    }
+  },
+
+  karaciger: {
+    name: "Karaciğer",
+    icon: "KC",
+    protocols: {
+      sbrt45: {
+        name: "HCC SBRT 45 Gy / 5 fx",
+        refTotal: 45,
+        note: "HCC; Child-Pugh A; AAPM TG-101 ve Bujold 2013.",
+        sources: [
+          { label: "Bujold 2013 HCC SBRT", url: "https://pubmed.ncbi.nlm.nih.gov/23362241/" },
+          { label: "AAPM TG-101" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %130", pct: 130 }
+        ],
+        oar: [
+          { lbl: "Karaciğer - GTV V15 ≤ 700 cc", kind: "DV", vol: "700cc", dose: 15 },
+          { lbl: "Karaciğer normal Dmean ≤ 15 Gy", kind: "Dmean", dose: 15 },
+          { lbl: "Mide Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 },
+          { lbl: "Duodenum Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 },
+          { lbl: "İnce barsak Dmax ≤ 35 Gy", kind: "Dmax", dose: 35 },
+          { lbl: "Spinal cord Dmax ≤ 25 Gy", kind: "Dmax", dose: 25 },
+          { lbl: "Böbrek bilateral V12 ≤ %30", kind: "V", dose: 12, vol: 30 }
+        ],
+        defaultPhases: [{ name: "HCC SBRT", fx: 5, dpf: 900 }]
+      },
+      sbrt50: {
+        name: "Metastaz SBRT 50 Gy / 5 fx",
+        refTotal: 50,
+        note: "Oligometastaz (kolorektal, vb.); RTOG 0438.",
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %130", pct: 130 }
+        ],
+        oar: [
+          { lbl: "Karaciğer - GTV V15 ≤ 700 cc", kind: "DV", vol: "700cc", dose: 15 },
+          { lbl: "Karaciğer normal Dmean ≤ 15 Gy", kind: "Dmean", dose: 15 },
+          { lbl: "Mide Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 },
+          { lbl: "Spinal cord Dmax ≤ 25 Gy", kind: "Dmax", dose: 25 }
+        ],
+        defaultPhases: [{ name: "Liver met SBRT", fx: 5, dpf: 1000 }]
+      },
+      sbrt60_3: {
+        name: "Oligomet SBRT 60 Gy / 3 fx",
+        refTotal: 60,
+        note: "Periferik küçük lezyon; yüksek doz fraksiyone.",
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %140", pct: 140 }
+        ],
+        oar: [
+          { lbl: "Karaciğer - GTV V21 ≤ 700 cc", kind: "DV", vol: "700cc", dose: 21 },
+          { lbl: "Mide Dmax ≤ 27 Gy", kind: "Dmax", dose: 27 },
+          { lbl: "Spinal cord Dmax ≤ 18 Gy", kind: "Dmax", dose: 18 }
+        ],
+        defaultPhases: [{ name: "SBRT 3fx", fx: 3, dpf: 2000 }]
+      },
+      konv50: {
+        name: "Konvansiyonel 50 Gy / 25 fx",
+        refTotal: 50,
+        note: "Kolanjio karsinom / büyük HCC; konkürran sisplatin/gemsitabin.",
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Karaciğer normal Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 },
+          { lbl: "Böbrek Dmean ≤ 18 Gy", kind: "Dmean", dose: 18 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Mide V45 ≤ %20", kind: "V", dose: 45, vol: 20 }
+        ],
+        defaultPhases: [{ name: "Konvansiyonel", fx: 25, dpf: 200 }]
+      }
+    }
+  },
+
+  anal: {
+    name: "Anal kanal",
+    icon: "AN",
+    protocols: {
+      rtog0529: {
+        name: "RTOG 0529 SIB 50.4/45/42 Gy / 28 fx",
+        refTotal: 50.4,
+        note: "Standart kemoRT (5-FU/mitomisin); RTOG 0529 dose-painting.",
+        sources: [
+          { label: "RTOG 0529 (Kachnic 2013)", url: "https://pubmed.ncbi.nlm.nih.gov/22305847/" }
+        ],
+        ptv: [
+          { label: "PTV_A (50.4) D95% ≥ %95", pct: 95 },
+          { label: "PTV_B (45) D95% ≥ %95", pct: 89 },
+          { label: "PTV_C (42) D95% ≥ %95", pct: 83 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "İnce barsak V45 ≤ 20 cc", kind: "DV", vol: "20cc", dose: 45 },
+          { lbl: "İnce barsak V35 ≤ 150 cc", kind: "DV", vol: "150cc", dose: 35 },
+          { lbl: "Mesane V35 ≤ %50", kind: "V", dose: 35, vol: 50 },
+          { lbl: "Mesane V40 ≤ %35", kind: "V", dose: 40, vol: 35 },
+          { lbl: "Eksternal genitalia V20 ≤ %50", kind: "V", dose: 20, vol: 50 },
+          { lbl: "Eksternal genitalia V40 ≤ %5", kind: "V", dose: 40, vol: 5 },
+          { lbl: "Femur V30 ≤ %50", kind: "V", dose: 30, vol: 50 },
+          { lbl: "Femur V40 ≤ %35", kind: "V", dose: 40, vol: 35 }
+        ],
+        defaultPhases: [{ name: "RTOG 0529", fx: 28, dpf: 180 }]
+      },
+      ekstended54: {
+        name: "Geniş lokal hastalık 54/45/30.6 Gy / 30 fx",
+        refTotal: 54,
+        note: "T3-T4 ileri evre; daha yüksek tümör dozu.",
+        sources: [
+          { label: "RTOG 0529 / ACT-II uyarlamalar" }
+        ],
+        ptv: [
+          { label: "PTV_T (54) D95% ≥ %95", pct: 95 },
+          { label: "PTV_LN+ (45) D95% ≥ %95", pct: 83 },
+          { label: "PTV_Elektif (30.6) D95% ≥ %95", pct: 57 }
+        ],
+        oar: [
+          { lbl: "İnce barsak V45 ≤ 20 cc", kind: "DV", vol: "20cc", dose: 45 },
+          { lbl: "Mesane V40 ≤ %35", kind: "V", dose: 40, vol: 35 },
+          { lbl: "Femur V40 ≤ %35", kind: "V", dose: 40, vol: 35 }
+        ],
+        defaultPhases: [{ name: "Geniş hastalık", fx: 30, dpf: 180 }]
+      }
+    }
+  },
+
+  mesane: {
+    name: "Mesane",
+    icon: "MS",
+    protocols: {
+      def64: {
+        name: "Definitif RT 64 Gy / 32 fx",
+        refTotal: 64,
+        note: "Mesane korunması (TURBT + kemoRT); RTOG 0926.",
+        sources: [
+          { label: "RTOG 0926", url: "https://pubmed.ncbi.nlm.nih.gov/34653558/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Rektum V60 ≤ %50", kind: "V", dose: 60, vol: 50 },
+          { lbl: "Rektum V40 ≤ %80", kind: "V", dose: 40, vol: 80 },
+          { lbl: "İnce barsak V45 ≤ 195 cc", kind: "DV", vol: "195cc", dose: 45 },
+          { lbl: "Femur Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 }
+        ],
+        defaultPhases: [{ name: "Definitif", fx: 32, dpf: 200 }]
+      },
+      hipo55: {
+        name: "Hipofraksiyone 55 Gy / 20 fx (BC2001)",
+        refTotal: 55,
+        note: "BC2001 trial; standart UK rejimi.",
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Rektum V35 ≤ %50", kind: "V", dose: 35, vol: 50 },
+          { lbl: "İnce barsak V35 ≤ 150 cc", kind: "DV", vol: "150cc", dose: 35 },
+          { lbl: "Femur Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        defaultPhases: [{ name: "Hipo", fx: 20, dpf: 275 }]
+      },
+      def66Boost: {
+        name: "Definitif + boost 50.4 + 16 Gy / 33 fx",
+        refTotal: 66.4,
+        note: "Tüm mesane elektif + tümör boost sequential.",
+        sources: [
+          { label: "BC2001 (James 2012)", url: "https://pubmed.ncbi.nlm.nih.gov/22512481/" }
+        ],
+        ptv: [
+          { label: "PTV_Elektif (50.4) D95% ≥ %95", pct: 76 },
+          { label: "PTV_Boost (66.4) D95% ≥ %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Rektum V60 ≤ %50", kind: "V", dose: 60, vol: 50 },
+          { lbl: "İnce barsak V45 ≤ 195 cc", kind: "DV", vol: "195cc", dose: 45 },
+          { lbl: "Femur Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        defaultPhases: [
+          { name: "Faz 1 (Elektif)", fx: 28, dpf: 180 },
+          { name: "Faz 2 (Boost)", fx: 5, dpf: 320 }
+        ]
+      }
+    }
+  },
+
+  spineSBRT: {
+    name: "Spine SBRT",
+    icon: "SP",
+    protocols: {
+      sbrt24_2: {
+        name: "Spine SBRT 24 Gy / 2 fx",
+        refTotal: 24,
+        note: "Oligometastaz / vertebral oligo; iyi MRI rehberliği şart.",
+        sources: [
+          { label: "Sahgal 2021 (CCTG SC.24)", url: "https://pubmed.ncbi.nlm.nih.gov/34119457/" }
+        ],
+        ptv: [
+          { label: "PTV D95% ≥ %95", pct: 95 },
+          { label: "PTV Dmax ≤ %130", pct: 130 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 17 Gy", kind: "Dmax", dose: 17 },
+          { lbl: "Cauda equina Dmax ≤ 22 Gy", kind: "Dmax", dose: 22 },
+          { lbl: "Esophagus Dmax ≤ 20 Gy", kind: "Dmax", dose: 20 },
+          { lbl: "Trakea Dmax ≤ 22 Gy", kind: "Dmax", dose: 22 }
+        ],
+        defaultPhases: [{ name: "Spine SBRT", fx: 2, dpf: 1200 }]
+      },
+      sbrt27_3: {
+        name: "Spine SBRT 27 Gy / 3 fx",
+        refTotal: 27,
+        note: "Üç fraksiyon spinal SBRT; lezyon büyük veya cord yakın.",
+        sources: [
+          { label: "Spine SBRT 3-fx klinik pratik" },
+          { label: "AAPM TG-101" }
+        ],
+        ptv: [
+          { label: "PTV D95% ≥ %95", pct: 95 },
+          { label: "PTV Dmax ≤ %125", pct: 125 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 21 Gy", kind: "Dmax", dose: 21 },
+          { lbl: "Cauda equina Dmax ≤ 22 Gy", kind: "Dmax", dose: 22 },
+          { lbl: "Esophagus Dmax ≤ 21 Gy", kind: "Dmax", dose: 21 }
+        ],
+        defaultPhases: [{ name: "Spine SBRT 3fx", fx: 3, dpf: 900 }]
+      },
+      sbrt18_1: {
+        name: "Spine SBRT 18 Gy / 1 fx",
+        refTotal: 18,
+        note: "Tek fraksiyon; küçük lezyon, MR-guidance.",
+        sources: [
+          { label: "Sahgal 2021 1-fx", url: "https://pubmed.ncbi.nlm.nih.gov/34119457/" }
+        ],
+        ptv: [
+          { label: "PTV D95% ≥ %90", pct: 90 },
+          { label: "PTV Dmax ≤ %130", pct: 130 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 14 Gy", kind: "Dmax", dose: 14 },
+          { lbl: "Cauda equina Dmax ≤ 16 Gy", kind: "Dmax", dose: 16 }
+        ],
+        defaultPhases: [{ name: "Spine SBRT 1fx", fx: 1, dpf: 1800 }]
+      },
+      palli30: {
+        name: "Palyatif vertebra 30 Gy / 10 fx",
+        refTotal: 30,
+        note: "Ağrı palyasyonu; klasik konvansiyonel.",
+        sources: [
+          { label: "Klasik kemik metastaz palyatif" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 }
+        ],
+        defaultPhases: [{ name: "Palyatif", fx: 10, dpf: 300 }]
+      },
+      palli8_1: {
+        name: "Palyatif 8 Gy / 1 fx",
+        refTotal: 8,
+        note: "Tek doz vertebra/kemik metastaz ağrı palyasyonu.",
+        sources: [
+          { label: "Chow 2007 single-fx palyatif", url: "https://pubmed.ncbi.nlm.nih.gov/17765406/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 8 Gy", kind: "Dmax", dose: 8 }
+        ],
+        defaultPhases: [{ name: "Tek doz", fx: 1, dpf: 800 }]
+      }
+    }
+  },
+
+  lenfoma: {
+    name: "Lenfoma",
+    icon: "LF",
+    protocols: {
+      hodgkin30: {
+        name: "Hodgkin ISRT 30 Gy / 15 fx",
+        refTotal: 30,
+        note: "İlk evre/erken evre Hodgkin; ABVD sonrası konsolidasyon.",
+        sources: [
+          { label: "ILROG modern Hodgkin", url: "https://pubmed.ncbi.nlm.nih.gov/24267967/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Heart Dmean ≤ 5 Gy", kind: "Dmean", dose: 5 },
+          { lbl: "Lung V20 ≤ %30", kind: "V", dose: 20, vol: 30 },
+          { lbl: "Breast (kadın <30y) Dmean ≤ 4 Gy", kind: "Dmean", dose: 4 },
+          { lbl: "Thyroid Dmean ≤ 25 Gy", kind: "Dmean", dose: 25 },
+          { lbl: "Spinal cord Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 }
+        ],
+        defaultPhases: [{ name: "ISRT", fx: 15, dpf: 200 }]
+      },
+      hodgkin36: {
+        name: "Hodgkin 36 Gy / 18 fx (yetersiz yanıt)",
+        refTotal: 36,
+        note: "Kemoterapi yetersiz yanıt; doz arttırımı.",
+        sources: [
+          { label: "ILROG / GHSG HD17" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Heart Dmean ≤ 5 Gy", kind: "Dmean", dose: 5 },
+          { lbl: "Lung V20 ≤ %30", kind: "V", dose: 20, vol: 30 }
+        ],
+        defaultPhases: [{ name: "Hodgkin yüksek doz", fx: 18, dpf: 200 }]
+      },
+      nhl30: {
+        name: "DLBCL ISRT 30 Gy / 15 fx (CR)",
+        refTotal: 30,
+        note: "DLBCL R-CHOP sonrası tam yanıt; konsolidasyon.",
+        sources: [
+          { label: "ILROG DLBCL (Illidge 2014)", url: "https://pubmed.ncbi.nlm.nih.gov/24267967/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Heart Dmean ≤ 5 Gy", kind: "Dmean", dose: 5 },
+          { lbl: "Lung V20 ≤ %30", kind: "V", dose: 20, vol: 30 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 }
+        ],
+        defaultPhases: [{ name: "DLBCL ISRT", fx: 15, dpf: 200 }]
+      },
+      nhl40: {
+        name: "DLBCL/Folliküler 40 Gy / 20 fx (rezidüel)",
+        refTotal: 40,
+        note: "Kemoterapi sonrası rezidüel hastalık.",
+        sources: [
+          { label: "Lowry 2011 NHL doz", url: "https://pubmed.ncbi.nlm.nih.gov/21636150/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Heart Dmean ≤ 5 Gy", kind: "Dmean", dose: 5 },
+          { lbl: "Lung V20 ≤ %30", kind: "V", dose: 20, vol: 30 }
+        ],
+        defaultPhases: [{ name: "Rezidüel", fx: 20, dpf: 200 }]
+      },
+      tsbi4: {
+        name: "TSEBI cilt 36 Gy / 18 fx (mycosis fungoides)",
+        refTotal: 36,
+        note: "Total skin electron beam therapy; mycosis fungoides.",
+        sources: [
+          { label: "ILROG TSEBI (Specht 2015)", url: "https://pubmed.ncbi.nlm.nih.gov/25754377/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Lens (blokla) Dmax ≤ 7 Gy", kind: "Dmax", dose: 7 },
+          { lbl: "Tırnak yatağı Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 }
+        ],
+        defaultPhases: [{ name: "TSEBI", fx: 18, dpf: 200 }]
+      },
+      palli4: {
+        name: "Palyatif 4 Gy / 2 fx (BOOM)",
+        refTotal: 4,
+        note: "Bone of My Bone / low-dose lenfoma; çok hızlı yanıt.",
+        sources: [
+          { label: "Hoskin 2014 (4 Gy NHL palyatif)", url: "https://pubmed.ncbi.nlm.nih.gov/24923657/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 4 Gy", kind: "Dmax", dose: 4 }
+        ],
+        defaultPhases: [{ name: "BOOM", fx: 2, dpf: 200 }]
+      }
+    }
+  }
+};
+
+let phases = [];
+let activeRegion = "prostat";
+let activeProtocol = "definitif78";
+
+const $ = (s) => document.querySelector(s);
+
+function fmt(n, d) {
+  if (!isFinite(n)) return "—";
+  const s = Number(n).toFixed(d ?? 2);
+  return s.replace(/\.?0+$/, "") || "0";
+}
+function fmtPct(n, d=1) { return isFinite(n) ? Number(n).toFixed(d) + "%" : "—"; }
+
+const REGION_GROUPS = [
+  { name: "Pelvik bölge", keys: ["prostat", "rektum", "serviks", "mesane", "anal"] },
+  { name: "Torasik", keys: ["meme", "akciger", "ozofagus"] },
+  { name: "Baş & boyun · CNS", keys: ["bb", "beyin", "spineSBRT"] },
+  { name: "Abdominal", keys: ["pankreas", "karaciger"] },
+  { name: "Sistemik", keys: ["lenfoma"] }
+];
+
+function getRegionGroup(key) {
+  for (const g of REGION_GROUPS) {
+    if (g.keys.includes(key)) return g.name;
+  }
+  return "Diğer / özel";
+}
+
+function renderSidebar(filterText = "") {
+  const container = $("#region-groups");
+  container.innerHTML = "";
+  const filter = filterText.trim().toLowerCase();
+
+  // Build grouped list
+  const groupedKeys = {};
+  REGION_GROUPS.forEach(g => groupedKeys[g.name] = []);
+  const customGroup = "Manuel eklenen";
+  groupedKeys[customGroup] = [];
+
+  Object.entries(REGIONS).forEach(([key, r]) => {
+    if (r._custom && !REGION_GROUPS.some(g => g.keys.includes(key))) {
+      groupedKeys[customGroup].push(key);
+    } else {
+      const gname = getRegionGroup(key);
+      if (!groupedKeys[gname]) groupedKeys[gname] = [];
+      groupedKeys[gname].push(key);
+    }
+  });
+
+  const allGroups = [...REGION_GROUPS.map(g => g.name), customGroup];
+  allGroups.forEach(gname => {
+    const keys = groupedKeys[gname] || [];
+    const visibleKeys = filter ? keys.filter(k => REGIONS[k].name.toLowerCase().includes(filter)) : keys;
+    if (visibleKeys.length === 0 && filter) return;
+    if (keys.length === 0 && gname === customGroup) return;
+
+    const h = document.createElement("h3");
+    h.textContent = gname;
+    container.appendChild(h);
+
+    const list = document.createElement("div");
+    list.className = "region-list";
+    visibleKeys.forEach(key => {
+      const r = REGIONS[key];
+      const protoCount = Object.keys(r.protocols).length;
+      const el = document.createElement("div");
+      el.className = "region-item" + (key === activeRegion ? " active" : "");
+      el.innerHTML =
+        '<span class="ic">' + r.icon + '</span>' +
+        '<span class="name">' + r.name + '</span>' +
+        '<span class="count">' + protoCount + '</span>';
+      el.addEventListener("click", () => {
+        activeRegion = key;
+        const firstProto = Object.keys(REGIONS[key].protocols)[0];
+        activeProtocol = firstProto;
+        renderSidebar(filterText);
+        renderProtocolSelect();
+        loadProtocol();
+      });
+      list.appendChild(el);
+    });
+
+    if (visibleKeys.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "group-empty";
+      empty.textContent = "Eşleşme yok";
+      list.appendChild(empty);
+    }
+    container.appendChild(list);
+  });
+}
+
+function renderProtocolSelect() {
+  const sel = $("#protocol-select");
+  sel.innerHTML = "";
+  const protos = REGIONS[activeRegion].protocols;
+  Object.entries(protos).forEach(([key, p]) => {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = p.name;
+    if (key === activeProtocol) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function renderPhases() {
+  const phasesEl = $("#phases");
+  phasesEl.innerHTML = "";
+  phases.forEach((p, i) => {
+    const rx = ((p.fx || 0) * (p.dpf || 0)) / 100;
+    const row = document.createElement("div");
+    row.className = "phase-grid";
+    row.innerHTML =
+      '<div class="idx">' + (i+1) + '</div>' +
+      '<input type="text" value="' + p.name + '" data-i="' + i + '" data-k="name">' +
+      '<input type="number" min="1" step="1" value="' + p.fx + '" data-i="' + i + '" data-k="fx">' +
+      '<input type="number" min="1" step="1" value="' + p.dpf + '" data-i="' + i + '" data-k="dpf">' +
+      '<div class="dose-readout">' + fmt(rx, 2) + '</div>' +
+      '<button class="del" data-rm="' + i + '" title="Sil">×</button>';
+    phasesEl.appendChild(row);
+  });
+  phasesEl.querySelectorAll("input").forEach(inp => {
+    inp.addEventListener("input", e => {
+      const i = +e.target.dataset.i, k = e.target.dataset.k;
+      const v = k === "name" ? e.target.value : Number(e.target.value);
+      phases[i][k] = v;
+      recompute();
+    });
+  });
+  phasesEl.querySelectorAll("button[data-rm]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const i = +e.currentTarget.dataset.rm;
+      phases.splice(i, 1);
+      renderPhases();
+      recompute();
+    });
+  });
+}
+
+function recompute() {
+  const totalFx = phases.reduce((a, p) => a + (p.fx || 0), 0);
+  const totalDose = phases.reduce((a, p) => a + ((p.fx || 0) * (p.dpf || 0)) / 100, 0);
+  const avg = totalFx > 0 ? (totalDose * 100 / totalFx) : 0;
+
+  $("#t-fx").textContent = totalFx || "—";
+  $("#t-dose").textContent = totalDose ? fmt(totalDose, 1) : "—";
+  $("#t-avg").textContent = avg ? fmt(avg, 0) : "—";
+  $("#t-phases").textContent = phases.length || "—";
+
+  const warnEl = $("#warn-row");
+  let warns = [];
+  phases.forEach((p, i) => {
+    if (!p.fx || !p.dpf) warns.push("Faz " + (i+1) + " eksik (fx veya doz/fx = 0).");
+  });
+  if (phases.length === 0) warns.push("En az 1 faz ekleyin.");
+  warnEl.innerHTML = warns.length ? '<div class="warn">' + warns.join("<br>") + '</div>' : '';
+
+  // re-render dose readouts in phase rows
+  phases.forEach((p, i) => {
+    const rx = ((p.fx || 0) * (p.dpf || 0)) / 100;
+    const row = $("#phases").children[i];
+    if (row) row.querySelector(".dose-readout").textContent = fmt(rx, 2);
+  });
+
+  const proto = REGIONS[activeRegion].protocols[activeProtocol];
+  const phaseInfo = phases.map(p => {
+    const rx = ((p.fx||0) * (p.dpf||0)) / 100;
+    const scale = totalDose > 0 ? rx / totalDose : 0;
+    return { ...p, rx, scale };
+  });
+
+  // Summary
+  const sumBody = $("#summary-tbl tbody");
+  sumBody.innerHTML = "";
+  phaseInfo.forEach((p,i)=>{
+    sumBody.innerHTML += '<tr>' +
+      '<td class="label">' + (p.name || "Faz " + (i+1)) + '</td>' +
+      '<td class="num">' + (p.fx || "—") + '</td>' +
+      '<td class="num">' + (p.dpf || "—") + ' cGy</td>' +
+      '<td class="num">' + fmt(p.rx, 2) + ' Gy</td>' +
+      '<td class="num">' + (p.scale ? fmt(p.scale, 3) : "—") + '</td>' +
+      '<td class="num">' + (p.scale ? fmtPct(p.scale * 100, 1) : "—") + '</td>' +
+    '</tr>';
+  });
+  // Total row
+  sumBody.innerHTML += '<tr>' +
+    '<td class="total label">Toplam</td>' +
+    '<td class="num total">' + totalFx + '</td>' +
+    '<td class="num total">—</td>' +
+    '<td class="num total">' + fmt(totalDose, 2) + ' Gy</td>' +
+    '<td class="num total">1,000</td>' +
+    '<td class="num total">100%</td>' +
+  '</tr>';
+
+  // PTV
+  const ptvHead = $("#ptv-tbl thead tr");
+  ptvHead.innerHTML = "<th>Hedef</th>" + phaseInfo.map((p,i) => '<th class="num">' + (p.name || ("Faz "+(i+1))) + '<br><span style="font-weight:400;color:var(--text-soft);font-size:11px;">Rx ' + fmt(p.rx,2) + ' Gy</span></th>').join("");
+  const ptvBody = $("#ptv-tbl tbody");
+  ptvBody.innerHTML = "";
+  proto.ptv.forEach(g => {
+    const cells = phaseInfo.map(p => '<td class="num">' + fmt(p.rx * g.pct / 100, 2) + ' Gy</td>').join("");
+    ptvBody.innerHTML += '<tr><td class="label">' + g.label + '</td>' + cells + '</tr>';
+  });
+
+  // OAR
+  const oarHead = $("#oar-tbl thead tr");
+  oarHead.innerHTML = "<th>OAR / Protokol</th>" +
+    phaseInfo.map((p,i) => '<th class="num">' + (p.name || ("Faz "+(i+1))) + '<br><span style="font-weight:400;color:var(--text-soft);font-size:11px;">' + fmt(p.rx,1) + ' Gy plan</span></th>').join("") +
+    '<th class="num total">Toplam<br><span style="font-weight:400;font-size:11px;">' + fmt(totalDose,1) + ' Gy</span></th>';
+  const oarBody = $("#oar-tbl tbody");
+  oarBody.innerHTML = "";
+  proto.oar.forEach(g => {
+    let cells = "";
+    phaseInfo.forEach(p => {
+      const dscale = g.dose * p.scale;
+      cells += '<td class="num">' + formatConstraint(g, dscale) + '</td>';
+    });
+    cells += '<td class="num total">' + formatConstraint(g, g.dose) + '</td>';
+    oarBody.innerHTML += '<tr><td class="label">' + g.lbl + '</td>' + cells + '</tr>';
+  });
+
+  // Protocol info card
+  $("#protocol-title").textContent = REGIONS[activeRegion].name + " — " + proto.name;
+  $("#protocol-subtitle").textContent = "Referans toplam: " + proto.refTotal + " Gy";
+  let infoHtml = '<strong>Not:</strong> ' + proto.note;
+  if (proto.sources && proto.sources.length > 0) {
+    infoHtml += '<div class="protocol-sources">';
+    infoHtml += '<div class="protocol-sources-label">Kaynak / referans</div>';
+    proto.sources.forEach(s => {
+      if (s.url) {
+        infoHtml += '<a class="source-pill" href="' + s.url + '" target="_blank" rel="noopener">' + s.label + ' ↗</a>';
+      } else {
+        infoHtml += '<span class="source-pill plain">' + s.label + '</span>';
+      }
+    });
+    infoHtml += '</div>';
+  } else if (proto._custom) {
+    infoHtml += '<div class="protocol-sources"><div class="protocol-sources-label">Kaynak</div><span class="source-pill plain">Manuel eklenmiş (kullanıcı tanımlı)</span></div>';
+  }
+  $("#protocol-info").innerHTML = infoHtml;
+
+  // Special rules
+  const specCard = $("#special-rules-card");
+  if (proto.specialRules && proto.specialRules.length > 0) {
+    specCard.style.display = "";
+    const specHead = $("#special-tbl thead tr");
+    specHead.innerHTML = "<th>Kural</th>" +
+      phaseInfo.map((p,i) => '<th class="num">' + (p.name || ("Faz "+(i+1))) + '<br><span style="font-weight:400;color:var(--text-soft);font-size:11px;">Rx ' + fmt(p.rx,2) + ' Gy</span></th>').join("") +
+      '<th class="num total">Toplam<br><span style="font-weight:400;font-size:11px;">' + fmt(totalDose,2) + ' Gy</span></th>';
+    const specBody = $("#special-tbl tbody");
+    specBody.innerHTML = "";
+    proto.specialRules.forEach(r => {
+      let cells = "";
+      phaseInfo.forEach(p => {
+        const v = p.rx * r.pct / 100;
+        cells += '<td class="num">' + fmt(v, 2) + ' Gy</td>';
+      });
+      const tot = totalDose * r.pct / 100;
+      cells += '<td class="num total">' + fmt(tot, 2) + ' Gy</td>';
+      let desc = r.desc ? '<br><span style="font-weight:400;color:var(--text-soft);font-size:11px;">' + r.desc + '</span>' : '';
+      specBody.innerHTML += '<tr><td class="label">' + r.lbl + desc + '</td>' + cells + '</tr>';
+    });
+  } else {
+    specCard.style.display = "none";
+  }
+}
+
+function formatConstraint(g, dose) {
+  if (g.kind === "V") return "V" + fmt(dose, 1) + " ≤ " + g.vol + "%";
+  if (g.kind === "DV") return g.vol + " < " + fmt(dose, 1) + " Gy";
+  if (g.kind === "Dmean") return "Dort < " + fmt(dose, 1) + " Gy";
+  if (g.kind === "Dmax") return "Dmax ≤ " + fmt(dose, 1) + " Gy";
+  return "—";
+}
+
+function loadProtocol() {
+  const proto = REGIONS[activeRegion].protocols[activeProtocol];
+  phases = (proto.defaultPhases || []).map(p => ({...p}));
+  renderPhases();
+  recompute();
+}
+
+$("#protocol-select").addEventListener("change", e => {
+  activeProtocol = e.target.value;
+  loadProtocol();
+});
+$("#add-phase").addEventListener("click", () => {
+  phases.push({ name: "Faz " + (phases.length+1), fx: 5, dpf: 200 });
+  renderPhases();
+  recompute();
+});
+$("#reset-phases").addEventListener("click", loadProtocol);
+
+$("#copy-md").addEventListener("click", () => {
+  const proto = REGIONS[activeRegion].protocols[activeProtocol];
+  const totalDose = phases.reduce((a, p) => a + ((p.fx || 0) * (p.dpf || 0)) / 100, 0);
+  let md = "# " + REGIONS[activeRegion].name + " — " + proto.name + "\n\n";
+  md += "## Plan özeti\n\n| Faz | Fraksiyon | Doz/fx | Faz reçetesi | Skala | Pay |\n|---|---|---|---|---|---|\n";
+  phases.forEach((p,i) => {
+    const rx = ((p.fx||0)*(p.dpf||0))/100;
+    const sc = totalDose > 0 ? rx/totalDose : 0;
+    md += "| " + (p.name||"Faz "+(i+1)) + " | " + p.fx + " | " + p.dpf + " cGy | " + fmt(rx,2) + " Gy | " + fmt(sc,3) + " | " + fmtPct(sc*100,1) + " |\n";
+  });
+  md += "\n## PTV\n\n| Hedef | " + phases.map((p,i)=>(p.name||"Faz "+(i+1))).join(" | ") + " |\n|" + "---|".repeat(phases.length+1) + "\n";
+  proto.ptv.forEach(g => {
+    let row = "| " + g.label + " |";
+    phases.forEach(p => { const rx = ((p.fx||0)*(p.dpf||0))/100; row += " " + fmt(rx*g.pct/100,2) + " Gy |"; });
+    md += row + "\n";
+  });
+  md += "\n## OAR\n\n| OAR | " + phases.map((p,i)=>(p.name||"Faz "+(i+1))).join(" | ") + " | Toplam |\n|" + "---|".repeat(phases.length+2) + "\n";
+  proto.oar.forEach(g => {
+    let row = "| " + g.lbl + " |";
+    phases.forEach(p => {
+      const rx = ((p.fx||0)*(p.dpf||0))/100;
+      const sc = totalDose > 0 ? rx/totalDose : 0;
+      row += " " + formatConstraint(g, g.dose * sc) + " |";
+    });
+    row += " " + formatConstraint(g, g.dose) + " |";
+    md += row + "\n";
+  });
+  navigator.clipboard.writeText(md).then(() => {
+    const b = $("#copy-md"); const orig = b.textContent;
+    b.textContent = "✓ Kopyalandı";
+    setTimeout(()=> b.textContent = orig, 1500);
+  });
+});
+
+$("#copy-csv").addEventListener("click", () => {
+  const proto = REGIONS[activeRegion].protocols[activeProtocol];
+  const totalDose = phases.reduce((a, p) => a + ((p.fx || 0) * (p.dpf || 0)) / 100, 0);
+  let csv = "OAR/Protokol," + phases.map((p,i)=>(p.name||"Faz "+(i+1))).join(",") + ",Toplam\n";
+  proto.oar.forEach(g => {
+    let row = '"' + g.lbl + '"';
+    phases.forEach(p => {
+      const rx = ((p.fx||0)*(p.dpf||0))/100;
+      const sc = totalDose > 0 ? rx/totalDose : 0;
+      row += ',"' + formatConstraint(g, g.dose * sc) + '"';
+    });
+    row += ',"' + formatConstraint(g, g.dose) + '"';
+    csv += row + "\n";
+  });
+  navigator.clipboard.writeText(csv).then(() => {
+    const b = $("#copy-csv"); const orig = b.textContent;
+    b.textContent = "✓ Kopyalandı";
+    setTimeout(()=> b.textContent = orig, 1500);
+  });
+});
+
+$("#print-page").addEventListener("click", () => window.print());
+
+// ============ Custom regions (localStorage) ============
+const CUSTOM_KEY = "fb_custom_regions_v1";
+
+function loadCustomRegions() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_KEY);
+    if (!raw) return;
+    const custom = JSON.parse(raw);
+    Object.entries(custom).forEach(([rkey, r]) => {
+      if (!REGIONS[rkey]) {
+        REGIONS[rkey] = { name: r.name, icon: r.icon || "•", protocols: {}, _custom: true };
+      }
+      Object.entries(r.protocols || {}).forEach(([pkey, p]) => {
+        REGIONS[rkey].protocols[pkey] = { ...p, _custom: true };
+      });
+    });
+  } catch (e) { console.warn("Custom regions load failed", e); }
+}
+
+function saveCustomRegions() {
+  const custom = {};
+  Object.entries(REGIONS).forEach(([rkey, r]) => {
+    const customProtos = {};
+    Object.entries(r.protocols).forEach(([pkey, p]) => {
+      if (p._custom) {
+        const { _custom, ...rest } = p;
+        customProtos[pkey] = rest;
+      }
+    });
+    if (r._custom || Object.keys(customProtos).length > 0) {
+      custom[rkey] = { name: r.name, icon: r.icon, protocols: customProtos };
+    }
+  });
+  localStorage.setItem(CUSTOM_KEY, JSON.stringify(custom));
+}
+
+// ============ Modal ============
+let modalPhases = [];
+
+function renderModalPhases() {
+  const el = $("#m-phases-list");
+  el.innerHTML = "";
+  modalPhases.forEach((p, i) => {
+    const row = document.createElement("div");
+    row.style.cssText = "display:grid; grid-template-columns:1.5fr 0.7fr 0.7fr 36px; gap:8px; align-items:center; margin-bottom:6px;";
+    row.innerHTML =
+      '<input type="text" value="' + p.name + '" data-mi="' + i + '" data-mk="name" style="width:100%;">' +
+      '<input type="number" min="1" value="' + p.fx + '" data-mi="' + i + '" data-mk="fx" style="width:100%;" placeholder="fx">' +
+      '<input type="number" min="1" value="' + p.dpf + '" data-mi="' + i + '" data-mk="dpf" style="width:100%;" placeholder="cGy">' +
+      '<button data-mrm="' + i + '" style="padding:4px 8px;">×</button>';
+    el.appendChild(row);
+  });
+  el.querySelectorAll("input").forEach(inp => {
+    inp.addEventListener("input", e => {
+      const i = +e.target.dataset.mi, k = e.target.dataset.mk;
+      modalPhases[i][k] = k === "name" ? e.target.value : Number(e.target.value);
+    });
+  });
+  el.querySelectorAll("button[data-mrm]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      modalPhases.splice(+e.currentTarget.dataset.mrm, 1);
+      renderModalPhases();
+    });
+  });
+}
+
+function openModal() {
+  $("#m-region").value = "";
+  $("#m-icon").value = "•";
+  $("#m-proto-name").value = "";
+  $("#m-ref").value = "";
+  $("#m-note").value = "";
+  $("#m-ptv").value = "D95% ≥ Rx %95 | 95\nDmax ≤ Rx %107 | 107";
+  $("#m-oar").value = "";
+  modalPhases = [{ name: "Faz 1", fx: 25, dpf: 200 }];
+  renderModalPhases();
+  $("#add-modal").style.display = "flex";
+}
+function closeModal() { $("#add-modal").style.display = "none"; }
+
+$("#open-add-modal").addEventListener("click", openModal);
+$("#close-modal").addEventListener("click", closeModal);
+$("#m-cancel").addEventListener("click", closeModal);
+$("#m-add-phase").addEventListener("click", () => {
+  modalPhases.push({ name: "Faz " + (modalPhases.length+1), fx: 5, dpf: 200 });
+  renderModalPhases();
+});
+
+$("#m-save").addEventListener("click", () => {
+  const regName = $("#m-region").value.trim();
+  const icon = $("#m-icon").value.trim() || "•";
+  const protoName = $("#m-proto-name").value.trim();
+  const ref = parseFloat($("#m-ref").value);
+  const note = $("#m-note").value.trim() || "Manuel eklenmiş protokol.";
+
+  if (!regName || !protoName || !isFinite(ref)) {
+    alert("Lütfen bölge adı, protokol adı ve referans dozu girin.");
+    return;
+  }
+
+  // Parse PTV
+  const ptv = [];
+  $("#m-ptv").value.split("\n").forEach(line => {
+    line = line.trim();
+    if (!line) return;
+    const parts = line.split("|").map(s => s.trim());
+    if (parts.length >= 2) ptv.push({ label: parts[0], pct: parseFloat(parts[1]) });
+  });
+
+  // Parse OAR
+  const oar = [];
+  $("#m-oar").value.split("\n").forEach(line => {
+    line = line.trim();
+    if (!line) return;
+    const parts = line.split("|").map(s => s.trim());
+    if (parts.length < 3) return;
+    const [lbl, kind, ...rest] = parts;
+    const o = { lbl, kind };
+    if (kind === "V") {
+      o.dose = parseFloat(rest[0]);
+      o.vol = parseFloat(rest[1]);
+    } else if (kind === "DV") {
+      o.dose = parseFloat(rest[0]);
+      o.vol = rest[1] || "1cc";
+    } else if (kind === "Dmean" || kind === "Dmax") {
+      o.dose = parseFloat(rest[0]);
+    }
+    oar.push(o);
+  });
+
+  // Generate keys
+  const rkey = regName.toLowerCase().replace(/[^a-z0-9]/g, "_").substr(0, 20) || ("custom_" + Date.now());
+  const pkey = "custom_" + Date.now();
+
+  if (!REGIONS[rkey]) {
+    REGIONS[rkey] = { name: regName, icon, protocols: {}, _custom: true };
+  }
+  REGIONS[rkey].protocols[pkey] = {
+    name: protoName,
+    refTotal: ref,
+    note: note,
+    ptv: ptv,
+    oar: oar,
+    defaultPhases: modalPhases.slice(),
+    _custom: true
+  };
+
+  saveCustomRegions();
+  activeRegion = rkey;
+  activeProtocol = pkey;
+  renderSidebar();
+  renderProtocolSelect();
+  loadProtocol();
+  closeModal();
+});
+
+// Search wiring
+$("#region-search").addEventListener("input", e => renderSidebar(e.target.value));
+
+// Initialize
+loadCustomRegions();
+renderSidebar();
+renderProtocolSelect();
+loadProtocol();
+</script>
+
+</body>
+</html>
