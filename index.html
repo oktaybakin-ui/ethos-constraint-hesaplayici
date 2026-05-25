@@ -2233,6 +2233,169 @@ const REGIONS = {
         ],
         defaultPhases: [{ name: "Spine SBRT 1fx", fx: 1, dpf: 1800 }]
       },
+      sbrt16_1: {
+        name: "Spine SBRT 16 Gy / 1 fx (RTOG 0631)",
+        refTotal: 16,
+        note: "De novo tek fraksiyon; RTOG 0631 protokolü. Düşük doz tek-fx seçeneği.",
+        sources: [
+          { label: "RTOG 0631 (Ryu 2019)", url: "https://pubmed.ncbi.nlm.nih.gov/31070704/" }
+        ],
+        ptv: [
+          { label: "PTV D90% ≥ %90", pct: 90 },
+          { label: "PTV Dmax ≤ %125", pct: 125 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 14 Gy", kind: "Dmax", dose: 14 },
+          { lbl: "Spinal cord D10% ≤ 10 Gy", kind: "V", dose: 10, vol: 10 },
+          { lbl: "Cauda equina Dmax ≤ 16 Gy", kind: "Dmax", dose: 16 },
+          { lbl: "Esophagus Dmax ≤ 16 Gy", kind: "Dmax", dose: 16 }
+        ],
+        defaultPhases: [{ name: "Spine SRS 1fx", fx: 1, dpf: 1600 }]
+      },
+      sbrt24_1: {
+        name: "Spine SRS 24 Gy / 1 fx (yüksek doz)",
+        refTotal: 24,
+        note: "Tek fraksiyon yüksek doz; radyorezistan histoloji (RCC, melanom, sarkom). MSKCC deneyimi.",
+        sources: [
+          { label: "Yamada 2017 (24 Gy single)", url: "https://pubmed.ncbi.nlm.nih.gov/27542804/" }
+        ],
+        ptv: [
+          { label: "PTV D90% ≥ %90", pct: 90 },
+          { label: "PTV Dmax ≤ %130", pct: 130 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 14 Gy", kind: "Dmax", dose: 14 },
+          { lbl: "Spinal cord D0.03cc ≤ 14 Gy", kind: "DV", vol: "0.03cc", dose: 14 },
+          { lbl: "Cauda equina Dmax ≤ 16 Gy", kind: "Dmax", dose: 16 }
+        ],
+        defaultPhases: [{ name: "Spine SRS 24/1", fx: 1, dpf: 2400 }]
+      },
+      sbrt24_3: {
+        name: "Spine SBRT 24 Gy / 3 fx (de novo)",
+        refTotal: 24,
+        note: "Üç fraksiyon de novo; daha geniş kord toleransı (Sahgal).",
+        sources: [
+          { label: "Sahgal kord tolerans (2013)", url: "https://pubmed.ncbi.nlm.nih.gov/22652105/" }
+        ],
+        ptv: [
+          { label: "PTV D95% ≥ %95", pct: 95 },
+          { label: "PTV Dmax ≤ %125", pct: 125 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 20.3 Gy", kind: "Dmax", dose: 20.3 },
+          { lbl: "Spinal cord D0.1cc ≤ 18 Gy", kind: "DV", vol: "0.1cc", dose: 18 },
+          { lbl: "Cauda equina Dmax ≤ 22 Gy", kind: "Dmax", dose: 22 },
+          { lbl: "Esophagus Dmax ≤ 25.2 Gy", kind: "Dmax", dose: 25.2 }
+        ],
+        defaultPhases: [{ name: "Spine SBRT 3fx", fx: 3, dpf: 800 }]
+      },
+      sbrt30_4: {
+        name: "Spine SBRT 30 Gy / 4 fx",
+        refTotal: 30,
+        note: "Dört fraksiyon; orta-büyük lezyon veya kord yakın.",
+        sources: [
+          { label: "AAPM TG-101", url: "https://pubmed.ncbi.nlm.nih.gov/20662446/" }
+        ],
+        ptv: [
+          { label: "PTV D95% ≥ %95", pct: 95 },
+          { label: "PTV Dmax ≤ %125", pct: 125 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 26 Gy", kind: "Dmax", dose: 26 },
+          { lbl: "Cauda equina Dmax ≤ 28 Gy", kind: "Dmax", dose: 28 },
+          { lbl: "Esophagus Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 }
+        ],
+        defaultPhases: [{ name: "Spine SBRT 4fx", fx: 4, dpf: 750 }]
+      },
+      sbrt30_5: {
+        name: "Spine SBRT 30 Gy / 5 fx",
+        refTotal: 30,
+        note: "Beş fraksiyon de novo; kord yakın lezyon, post-op uygun.",
+        sources: [
+          { label: "Sahgal 5-fx kord tolerans", url: "https://pubmed.ncbi.nlm.nih.gov/22652105/" }
+        ],
+        ptv: [
+          { label: "PTV D95% ≥ %95", pct: 95 },
+          { label: "PTV Dmax ≤ %125", pct: 125 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 25.3 Gy", kind: "Dmax", dose: 25.3 },
+          { lbl: "Spinal cord D0.03cc ≤ 22 Gy", kind: "DV", vol: "0.03cc", dose: 22 },
+          { lbl: "Cauda equina Dmax ≤ 32 Gy", kind: "Dmax", dose: 32 },
+          { lbl: "Esophagus Dmax ≤ 35 Gy", kind: "Dmax", dose: 35 }
+        ],
+        defaultPhases: [{ name: "Spine SBRT 5fx", fx: 5, dpf: 600 }]
+      },
+      sbrt35_5: {
+        name: "Spine SBRT 35 Gy / 5 fx (yüksek doz)",
+        refTotal: 35,
+        note: "Yüksek doz 5 fraksiyon; radyorezistan histoloji.",
+        sources: [
+          { label: "AAPM TG-101 / Sahgal", url: "https://pubmed.ncbi.nlm.nih.gov/20662446/" }
+        ],
+        ptv: [
+          { label: "PTV D95% ≥ %95", pct: 95 },
+          { label: "PTV Dmax ≤ %125", pct: 125 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 25.3 Gy", kind: "Dmax", dose: 25.3 },
+          { lbl: "Cauda equina Dmax ≤ 32 Gy", kind: "Dmax", dose: 32 },
+          { lbl: "Esophagus Dmax ≤ 35 Gy", kind: "Dmax", dose: 35 }
+        ],
+        defaultPhases: [{ name: "Spine SBRT 35/5", fx: 5, dpf: 700 }]
+      },
+      postopSBRT: {
+        name: "Post-op spine SBRT 27 Gy / 3 fx",
+        refTotal: 27,
+        note: "Separasyon cerrahisi sonrası; epidural hastalık dekompresyonu ardından (hybrid terapi).",
+        sources: [
+          { label: "Redmond post-op konsensüs (2017)", url: "https://pubmed.ncbi.nlm.nih.gov/27613416/" }
+        ],
+        ptv: [
+          { label: "PTV D90% ≥ %90", pct: 90 },
+          { label: "PTV Dmax ≤ %125", pct: 125 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 20.3 Gy", kind: "Dmax", dose: 20.3 },
+          { lbl: "Spinal cord D0.1cc ≤ 18 Gy", kind: "DV", vol: "0.1cc", dose: 18 },
+          { lbl: "Cauda equina Dmax ≤ 22 Gy", kind: "Dmax", dose: 22 }
+        ],
+        defaultPhases: [{ name: "Post-op SBRT", fx: 3, dpf: 900 }]
+      },
+      reirrad: {
+        name: "Re-irradiation spine 25 Gy / 5 fx",
+        refTotal: 25,
+        note: "Daha önce ışınlanmış vertebra; kümülatif kord dozu KRİTİK, BED/EQD2 ile bireysel değerlendir.",
+        sources: [
+          { label: "Sahgal re-irradiation kord (2012)", url: "https://pubmed.ncbi.nlm.nih.gov/22436782/" }
+        ],
+        ptv: [
+          { label: "PTV D90% ≥ %90", pct: 90 },
+          { label: "PTV Dmax ≤ %125", pct: 125 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 20 Gy (komülatif kontrol!)", kind: "Dmax", dose: 20 },
+          { lbl: "Spinal cord D0.1cc ≤ 14 Gy", kind: "DV", vol: "0.1cc", dose: 14 },
+          { lbl: "Cauda equina Dmax ≤ 25 Gy", kind: "Dmax", dose: 25 }
+        ],
+        defaultPhases: [{ name: "Re-RT spine", fx: 5, dpf: 500 }]
+      },
+      palli20_5: {
+        name: "Palyatif vertebra 20 Gy / 5 fx",
+        refTotal: 20,
+        note: "Konvansiyonel palyatif; orta ömür beklentisi.",
+        sources: [
+          { label: "Klasik palyatif rejim" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 20 Gy", kind: "Dmax", dose: 20 }
+        ],
+        defaultPhases: [{ name: "Palyatif 20/5", fx: 5, dpf: 400 }]
+      },
       palli30: {
         name: "Palyatif vertebra 30 Gy / 10 fx",
         refTotal: 30,
