@@ -1023,6 +1023,50 @@ const REGIONS = {
           { lbl: "Karotid Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 }
         ],
         defaultPhases: [{ name: "Glottis hipo", fx: 20, dpf: 275 }]
+      },
+      hpvDeescal60: {
+        name: "HPV+ orofarinks de-eskalasyon 60 Gy / 30 fx",
+        refTotal: 60,
+        note: "HPV/p16+ orofarinks; doz azaltımı (NRG-HN002 / ECOG 3311 esinli). Konkürran sisplatin ile.",
+        sources: [
+          { label: "NRG-HN002 (Yom 2021)", url: "https://pubmed.ncbi.nlm.nih.gov/33507809/" },
+          { label: "ECOG 3311 (Ferris 2022)", url: "https://pubmed.ncbi.nlm.nih.gov/34995143/" }
+        ],
+        ptv: [
+          { label: "PTV_yüksek D95% ≥ %95", pct: 95 },
+          { label: "PTV_elektif (54) D95% ≥ %95", pct: 90 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Parotid (en az 1) Dmean ≤ 26 Gy", kind: "Dmean", dose: 26 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Brainstem Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Larynx Dmean ≤ 35 Gy", kind: "Dmean", dose: 35 },
+          { lbl: "Oral kavite Dmean ≤ 30 Gy", kind: "Dmean", dose: 30 },
+          { lbl: "Konstriktör Dmean ≤ 50 Gy", kind: "Dmean", dose: 50 },
+          { lbl: "Cochlea Dmean ≤ 35 Gy", kind: "Dmean", dose: 35 }
+        ],
+        defaultPhases: [{ name: "De-eskalasyon", fx: 30, dpf: 200 }]
+      },
+      dahanca66: {
+        name: "DAHANCA hızlandırılmış 66-68 Gy / 33-34 fx (6 fx/hafta)",
+        refTotal: 66,
+        note: "Hızlandırılmış fraksiyonasyon; haftada 6 fraksiyon (DAHANCA 6&7). Tedavi süresi kısaltılır.",
+        sources: [
+          { label: "DAHANCA 6&7 (Overgaard 2003)", url: "https://pubmed.ncbi.nlm.nih.gov/12867108/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Brainstem Dmax ≤ 54 Gy", kind: "Dmax", dose: 54 },
+          { lbl: "Parotid Dmean ≤ 26 Gy", kind: "Dmean", dose: 26 },
+          { lbl: "Larynx Dmean ≤ 45 Gy", kind: "Dmean", dose: 45 },
+          { lbl: "Mandibula Dmax ≤ 68 Gy", kind: "Dmax", dose: 68 }
+        ],
+        defaultPhases: [{ name: "Hızlandırılmış", fx: 33, dpf: 200 }]
       }
     }
   },
@@ -1232,6 +1276,47 @@ const REGIONS = {
           { lbl: "Lens Dmax ≤ 7 Gy", kind: "Dmax", dose: 7 }
         ],
         defaultPhases: [{ name: "PCI", fx: 10, dpf: 250 }]
+      },
+      sbrt34_1: {
+        name: "SBRT 34 Gy / 1 fx (RTOG 0915)",
+        refTotal: 34,
+        note: "Periferik T1-T2 tek fraksiyon; RTOG 0915 (34 vs 48/4). >2 cm bronşial ağaçtan uzak.",
+        sources: [
+          { label: "RTOG 0915 (Videtic 2019)", url: "https://pubmed.ncbi.nlm.nih.gov/30513377/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %140", pct: 140 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 14 Gy", kind: "Dmax", dose: 14 },
+          { lbl: "Esophagus Dmax ≤ 15.4 Gy", kind: "Dmax", dose: 15.4 },
+          { lbl: "Brachial plexus Dmax ≤ 17.5 Gy", kind: "Dmax", dose: 17.5 },
+          { lbl: "Trakea/PBT Dmax ≤ 20.2 Gy", kind: "Dmax", dose: 20.2 },
+          { lbl: "Heart Dmax ≤ 22 Gy", kind: "Dmax", dose: 22 },
+          { lbl: "Lung total V20 ≤ %10", kind: "V", dose: 20, vol: 10 }
+        ],
+        defaultPhases: [{ name: "SBRT 1fx", fx: 1, dpf: 3400 }]
+      },
+      port504: {
+        name: "Postop PORT 50.4 Gy / 28 fx",
+        refTotal: 50.4,
+        note: "Postoperatif mediastinal nüks/N2 (seçili); LungART sonrası rutin değil, vaka bazlı.",
+        sources: [
+          { label: "LungART (Le Pechoux 2022)", url: "https://pubmed.ncbi.nlm.nih.gov/34919824/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Lung total V20 ≤ %25", kind: "V", dose: 20, vol: 25 },
+          { lbl: "Lung total Dmean ≤ 15 Gy", kind: "Dmean", dose: 15 },
+          { lbl: "Heart Dmean ≤ 20 Gy", kind: "Dmean", dose: 20 },
+          { lbl: "Esophagus Dmean ≤ 34 Gy", kind: "Dmean", dose: 34 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 }
+        ],
+        defaultPhases: [{ name: "PORT", fx: 28, dpf: 180 }]
       }
     }
   },
@@ -1978,6 +2063,48 @@ const REGIONS = {
           { name: "Faz 1 (Elektif)", fx: 25, dpf: 180 },
           { name: "Faz 2 (Boost)", fx: 3, dpf: 180 }
         ]
+      },
+      ablatif675: {
+        name: "Ablatif hipofraksiyone 67.5 Gy / 15 fx",
+        refTotal: 67.5,
+        note: "Lokal ileri inoperabl; ablatif doz (BED10 ~98 Gy). MR-guided / adaptif önerilir. Mide/duodenum Dmax ≤ 45 Gy.",
+        sources: [
+          { label: "Reyngold/MSKCC ablatif RT", url: "https://pubmed.ncbi.nlm.nih.gov/34292303/" },
+          { label: "Krishnan ablatif doz (2016)", url: "https://pubmed.ncbi.nlm.nih.gov/26972648/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Mide Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Duodenum Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "İnce barsak Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Böbrek bilateral Dmean ≤ 12 Gy", kind: "Dmean", dose: 12 },
+          { lbl: "Karaciğer Dmean ≤ 25 Gy", kind: "Dmean", dose: 25 },
+          { lbl: "Spinal cord Dmax ≤ 40 Gy", kind: "Dmax", dose: 40 }
+        ],
+        defaultPhases: [{ name: "Ablatif", fx: 15, dpf: 450 }]
+      },
+      sbrt40_5: {
+        name: "SBRT 40 Gy / 5 fx",
+        refTotal: 40,
+        note: "Borderline/lokal ileri; orta-yüksek doz SBRT, adaptif uygun.",
+        sources: [
+          { label: "Alliance A021501 (SBRT kolu)", url: "https://pubmed.ncbi.nlm.nih.gov/35857333/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %120", pct: 120 }
+        ],
+        oar: [
+          { lbl: "Mide Dmax ≤ 35 Gy", kind: "Dmax", dose: 35 },
+          { lbl: "Duodenum Dmax ≤ 35 Gy", kind: "Dmax", dose: 35 },
+          { lbl: "İnce barsak Dmax ≤ 35 Gy", kind: "Dmax", dose: 35 },
+          { lbl: "Böbrek bilateral V12 ≤ %25", kind: "V", dose: 12, vol: 25 },
+          { lbl: "Spinal cord Dmax ≤ 25 Gy", kind: "Dmax", dose: 25 }
+        ],
+        defaultPhases: [{ name: "SBRT 5fx", fx: 5, dpf: 800 }]
       }
     }
   },
@@ -2539,6 +2666,307 @@ const REGIONS = {
         defaultPhases: [{ name: "BOOM", fx: 2, dpf: 200 }]
       }
     }
+  },
+
+  mide: {
+    name: "Mide",
+    icon: "MD",
+    protocols: {
+      adjuvan45: {
+        name: "Adjuvan kemoRT 45 Gy / 25 fx (INT-0116)",
+        refTotal: 45,
+        note: "Rezeksiyon sonrası adjuvan; 5-FU/lökovorin. INT-0116 standart rejimi.",
+        sources: [
+          { label: "INT-0116 (Macdonald 2001)", url: "https://pubmed.ncbi.nlm.nih.gov/11547741/" },
+          { label: "SWOG 0116 güncel analiz", url: "https://pubmed.ncbi.nlm.nih.gov/22585691/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Böbrek bilateral V18 ≤ %30", kind: "V", dose: 18, vol: 30 },
+          { lbl: "Sol böbrek Dmean ≤ 18 Gy", kind: "Dmean", dose: 18 },
+          { lbl: "Sağ böbrek V20 ≤ %66", kind: "V", dose: 20, vol: 66 },
+          { lbl: "Karaciğer Dmean ≤ 25 Gy", kind: "Dmean", dose: 25 },
+          { lbl: "Karaciğer V30 ≤ %33", kind: "V", dose: 30, vol: 33 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "İnce barsak V45 ≤ 195 cc", kind: "DV", vol: "195cc", dose: 45 },
+          { lbl: "Kalp V30 ≤ %30", kind: "V", dose: 30, vol: 30 }
+        ],
+        defaultPhases: [{ name: "Adjuvan", fx: 25, dpf: 180 }]
+      },
+      neoadj45: {
+        name: "Neoadjuvan kemoRT 45 Gy / 25 fx",
+        refTotal: 45,
+        note: "Ameliyat öncesi; kapesitabin/oksaliplatin (CRITICS/POET esinli).",
+        sources: [
+          { label: "CRITICS trial", url: "https://pubmed.ncbi.nlm.nih.gov/29650363/" },
+          { label: "POET (Stahl 2009)", url: "https://pubmed.ncbi.nlm.nih.gov/19064982/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Böbrek bilateral V18 ≤ %30", kind: "V", dose: 18, vol: 30 },
+          { lbl: "Karaciğer Dmean ≤ 25 Gy", kind: "Dmean", dose: 25 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "İnce barsak V45 ≤ 195 cc", kind: "DV", vol: "195cc", dose: 45 },
+          { lbl: "Kalp Dmean ≤ 26 Gy", kind: "Dmean", dose: 26 }
+        ],
+        defaultPhases: [{ name: "Neoadjuvan", fx: 25, dpf: 180 }]
+      },
+      sib504: {
+        name: "SIB 45/50.4 Gy / 25 fx (tümör boost)",
+        refTotal: 50.4,
+        note: "Elektif 45 Gy + gross tümöre simultane integre boost.",
+        sources: [
+          { label: "TOPGEAR / modern kemoRT", url: "https://pubmed.ncbi.nlm.nih.gov/28557302/" }
+        ],
+        ptv: [
+          { label: "PTV_Elektif (45) D95% ≥ %95", pct: 89 },
+          { label: "PTV_Boost (50.4) D95% ≥ %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Böbrek bilateral V18 ≤ %30", kind: "V", dose: 18, vol: 30 },
+          { lbl: "Karaciğer Dmean ≤ 25 Gy", kind: "Dmean", dose: 25 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "İnce barsak V45 ≤ 195 cc", kind: "DV", vol: "195cc", dose: 45 }
+        ],
+        defaultPhases: [{ name: "SIB", fx: 25, dpf: 202 }]
+      },
+      palliatif: {
+        name: "Palyatif 30 Gy / 10 fx",
+        refTotal: 30,
+        note: "Kanama/obstrüksiyon palyasyonu.",
+        sources: [
+          { label: "Klasik palyatif rejim" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Böbrek bilateral V15 ≤ %35", kind: "V", dose: 15, vol: 35 },
+          { lbl: "Spinal cord Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 }
+        ],
+        defaultPhases: [{ name: "Palyatif", fx: 10, dpf: 300 }]
+      }
+    }
+  },
+
+  sarkom: {
+    name: "Sarkom (yumuşak doku)",
+    icon: "SR",
+    protocols: {
+      preop50: {
+        name: "Preop 50 Gy / 25 fx (ekstremite)",
+        refTotal: 50,
+        note: "Ameliyat öncesi; ESTRO-ASTRO standardı. Cerrahi 6-8 hafta sonra. Boost önerilmez (R1 olsa bile).",
+        sources: [
+          { label: "ESTRO-ASTRO STS rehberi 2024", url: "https://www.ajmc.com/view/preoperative-radiotherapy-remains-standard-of-care-for-soft-tissue-sarcoma-new-estro-astro-guideline-confirms" },
+          { label: "O'Sullivan NCIC-SR2 (2002)", url: "https://pubmed.ncbi.nlm.nih.gov/12110366/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "D98% ≥ Rx %90", pct: 90 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Komşu eklem Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Kemik Dmax ≤ 55 Gy", kind: "Dmax", dose: 55 },
+          { lbl: "Cilt koridoru (bypass) Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Femur Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        defaultPhases: [{ name: "Preop", fx: 25, dpf: 200 }]
+      },
+      postop60: {
+        name: "Postop 60 Gy / 30 fx",
+        refTotal: 60,
+        note: "Ameliyat sonrası negatif sınır; geç fibrozis riski preop'a göre yüksek.",
+        sources: [
+          { label: "ESTRO-ASTRO STS rehberi 2024", url: "https://www.ajmc.com/view/preoperative-radiotherapy-remains-standard-of-care-for-soft-tissue-sarcoma-new-estro-astro-guideline-confirms" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Komşu eklem Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Kemik Dmax ≤ 60 Gy", kind: "Dmax", dose: 60 },
+          { lbl: "Cilt koridoru Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        defaultPhases: [{ name: "Postop", fx: 30, dpf: 200 }]
+      },
+      postop66: {
+        name: "Postop 66 Gy / 33 fx (pozitif sınır)",
+        refTotal: 66,
+        note: "Pozitif/yakın cerrahi sınır; sequential boost.",
+        sources: [
+          { label: "NCCN STS rehberi" }
+        ],
+        ptv: [
+          { label: "PTV_Elektif (50) D95% ≥ %95", pct: 76 },
+          { label: "PTV_Boost (66) D95% ≥ %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Komşu eklem Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 },
+          { lbl: "Kemik Dmax ≤ 64 Gy", kind: "Dmax", dose: 64 }
+        ],
+        defaultPhases: [
+          { name: "Faz 1 (Elektif)", fx: 25, dpf: 200 },
+          { name: "Faz 2 (Boost)", fx: 8, dpf: 200 }
+        ]
+      },
+      retroperitoneal504: {
+        name: "Retroperitoneal preop 50.4 Gy / 28 fx",
+        refTotal: 50.4,
+        note: "Retroperitoneal sarkom preop; STRASS trial (seçili olgularda).",
+        sources: [
+          { label: "STRASS / EORTC 62092", url: "https://pubmed.ncbi.nlm.nih.gov/32941794/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Böbrek (kontralateral) V18 ≤ %30", kind: "V", dose: 18, vol: 30 },
+          { lbl: "Karaciğer Dmean ≤ 25 Gy", kind: "Dmean", dose: 25 },
+          { lbl: "İnce barsak V45 ≤ 195 cc", kind: "DV", vol: "195cc", dose: 45 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 }
+        ],
+        defaultPhases: [{ name: "Retroperitoneal preop", fx: 28, dpf: 180 }]
+      },
+      sbrtOligo: {
+        name: "Sarkom oligometastaz SBRT 50 Gy / 5 fx",
+        refTotal: 50,
+        note: "Akciğer/kemik oligometastaz; AAPM TG-101.",
+        sources: [
+          { label: "AAPM TG-101", url: "https://pubmed.ncbi.nlm.nih.gov/20662446/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %130", pct: 130 }
+        ],
+        oar: [
+          { lbl: "Spinal cord Dmax ≤ 30 Gy", kind: "Dmax", dose: 30 },
+          { lbl: "Lung total V20 ≤ %10", kind: "V", dose: 20, vol: 10 }
+        ],
+        defaultPhases: [{ name: "Oligomet SBRT", fx: 5, dpf: 1000 }]
+      }
+    }
+  },
+
+  cilt: {
+    name: "Cilt (non-melanom)",
+    icon: "CL",
+    protocols: {
+      hipo5015: {
+        name: "Definitif 50 Gy / 15 fx",
+        refTotal: 50,
+        note: "BCC/SCC; iyi kozmetik sonuç. RCR rehberi sık kullanılan rejim.",
+        sources: [
+          { label: "RCR Dose Fractionation 3rd ed (skin)", url: "https://www.rcr.ac.uk/media/fpod1s1f/rcr-publications-radiotherapy-dose-fractionation-third-edition-16-skin-cancer-march-2019.pdf" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %90", pct: 90 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Lens Dmax ≤ 7 Gy", kind: "Dmax", dose: 7 },
+          { lbl: "Kıkırdak Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        defaultPhases: [{ name: "Definitif 50/15", fx: 15, dpf: 333 }]
+      },
+      konv5520: {
+        name: "Definitif 55 Gy / 20 fx",
+        refTotal: 55,
+        note: "Genç/iyi performans hastada daha küçük fraksiyon; daha iyi geç etki profili.",
+        sources: [
+          { label: "RCR Dose Fractionation 3rd ed (skin)", url: "https://www.rcr.ac.uk/media/fpod1s1f/rcr-publications-radiotherapy-dose-fractionation-third-edition-16-skin-cancer-march-2019.pdf" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %90", pct: 90 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Lens Dmax ≤ 7 Gy", kind: "Dmax", dose: 7 },
+          { lbl: "Kıkırdak Dmax ≤ 55 Gy", kind: "Dmax", dose: 55 }
+        ],
+        defaultPhases: [{ name: "Definitif 55/20", fx: 20, dpf: 275 }]
+      },
+      hipo355: {
+        name: "Hipofraksiyone 35 Gy / 5 fx",
+        refTotal: 35,
+        note: "Yaşlı hasta / kısa kurs; eşdeğer kontrol, pratik.",
+        sources: [
+          { label: "RCR skin / hipofraksiyone meta-analiz", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC7534946/" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %90", pct: 90 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Lens Dmax ≤ 5 Gy", kind: "Dmax", dose: 5 },
+          { lbl: "Kıkırdak Dmax ≤ 35 Gy", kind: "Dmax", dose: 35 }
+        ],
+        defaultPhases: [{ name: "Hipo 35/5", fx: 5, dpf: 700 }]
+      },
+      hipo4510: {
+        name: "Hipofraksiyone 45 Gy / 10 fx",
+        refTotal: 45,
+        note: "Orta kurs; yaşlı/uygun anatomide.",
+        sources: [
+          { label: "RCR Dose Fractionation 3rd ed (skin)", url: "https://www.rcr.ac.uk/media/fpod1s1f/rcr-publications-radiotherapy-dose-fractionation-third-edition-16-skin-cancer-march-2019.pdf" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %90", pct: 90 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Lens Dmax ≤ 6 Gy", kind: "Dmax", dose: 6 },
+          { lbl: "Kıkırdak Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 }
+        ],
+        defaultPhases: [{ name: "Hipo 45/10", fx: 10, dpf: 450 }]
+      },
+      tek20: {
+        name: "Tek fraksiyon 20 Gy / 1 fx",
+        refTotal: 20,
+        note: "Küçük lezyon, yaşlı/komorbid; çok pratik tek seans.",
+        sources: [
+          { label: "RCR Dose Fractionation 3rd ed (skin)", url: "https://www.rcr.ac.uk/media/fpod1s1f/rcr-publications-radiotherapy-dose-fractionation-third-edition-16-skin-cancer-march-2019.pdf" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %90", pct: 90 },
+          { label: "Dmax ≤ Rx %110", pct: 110 }
+        ],
+        oar: [
+          { lbl: "Lens Dmax ≤ 5 Gy", kind: "Dmax", dose: 5 }
+        ],
+        defaultPhases: [{ name: "Tek fx", fx: 1, dpf: 2000 }]
+      },
+      postop60: {
+        name: "Postop 60 Gy / 30 fx (yüksek risk)",
+        refTotal: 60,
+        note: "Perinöral invazyon / pozitif sınır / rekürren SCC.",
+        sources: [
+          { label: "NCCN cilt kanseri rehberi" }
+        ],
+        ptv: [
+          { label: "D95% ≥ Rx %95", pct: 95 },
+          { label: "Dmax ≤ Rx %107", pct: 107 }
+        ],
+        oar: [
+          { lbl: "Lens Dmax ≤ 7 Gy", kind: "Dmax", dose: 7 },
+          { lbl: "Spinal cord Dmax ≤ 45 Gy", kind: "Dmax", dose: 45 },
+          { lbl: "Optic apparatus Dmax ≤ 50 Gy", kind: "Dmax", dose: 50 }
+        ],
+        defaultPhases: [{ name: "Postop", fx: 30, dpf: 200 }]
+      }
+    }
   }
 };
 
@@ -2559,7 +2987,8 @@ const REGION_GROUPS = [
   { name: "Pelvik bölge", keys: ["prostat", "rektum", "serviks", "mesane", "anal"] },
   { name: "Torasik", keys: ["meme", "akciger", "ozofagus"] },
   { name: "Baş & boyun · CNS", keys: ["bb", "beyin", "spineSBRT"] },
-  { name: "Abdominal", keys: ["pankreas", "karaciger"] },
+  { name: "Abdominal", keys: ["pankreas", "karaciger", "mide"] },
+  { name: "Yumuşak doku · yüzey", keys: ["sarkom", "cilt"] },
   { name: "Sistemik", keys: ["lenfoma"] }
 ];
 
